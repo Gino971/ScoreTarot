@@ -344,6 +344,31 @@
     margin-top: 6px;
   }
 
+  .backup-box {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .backup-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .backup-zone {
+    width: 100%;
+    min-height: 110px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #3a3a4f;
+    background: #12121b;
+    color: #f5f5f5;
+    font-size: 12px;
+    resize: vertical;
+  }
+
   table {
     border-collapse: collapse;
     font-size: 12px;
@@ -697,6 +722,18 @@
         <div class="players-list" id="listeNomsContainer">
           <!-- noms dynamiques -->
         </div>
+
+        <details class="backup-box">
+          <summary class="collapse-summary">
+            <span class="collapse-summary-text">Sauvegarde de la liste</span>
+          </summary>
+          <div class="small mt-4">Permet d’exporter ou réimporter les noms si l’iPhone recrée une liste locale vide ou par défaut.</div>
+          <div class="backup-actions">
+            <button type="button" class="small-btn" onclick="exporterListeNoms()">Exporter</button>
+            <button type="button" class="small-btn" onclick="importerListeNoms()">Importer</button>
+          </div>
+          <textarea id="zoneSauvegardeNoms" class="backup-zone" placeholder="Appuie sur Exporter pour copier la liste. Tu peux ensuite la coller ici plus tard et appuyer sur Importer."></textarea>
+        </details>
       </div>
     </div>
   </div>
@@ -801,6 +838,77 @@ function quitterApp() {
 
 function trierNoms() {
   listeNoms.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+}
+
+function normaliserListeNoms(valeur) {
+  if (Array.isArray(valeur)) {
+    return valeur
+      .map(nom => String(nom || '').trim())
+      .filter(Boolean);
+  }
+
+  const texte = String(valeur || '').trim();
+  if (!texte) return [];
+
+  try {
+    const json = JSON.parse(texte);
+    if (Array.isArray(json)) {
+      return json
+        .map(nom => String(nom || '').trim())
+        .filter(Boolean);
+    }
+  } catch (e) {}
+
+  return texte
+    .split(/\r?\n|;/)
+    .map(nom => nom.trim())
+    .filter(Boolean);
+}
+
+function dedupliquerNoms(noms) {
+  const uniques = [];
+  const vus = new Set();
+
+  noms.forEach(nom => {
+    const cle = nom.toLocaleLowerCase('fr');
+    if (vus.has(cle)) return;
+    vus.add(cle);
+    uniques.push(nom);
+  });
+
+  return uniques;
+}
+
+function exporterListeNoms() {
+  const zone = document.getElementById('zoneSauvegardeNoms');
+  if (!zone) return;
+
+  zone.value = JSON.stringify(listeNoms, null, 2);
+  zone.focus();
+  zone.select();
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(zone.value).catch(() => {});
+  }
+}
+
+function importerListeNoms() {
+  const zone = document.getElementById('zoneSauvegardeNoms');
+  if (!zone) return;
+
+  const nomsImportes = dedupliquerNoms(normaliserListeNoms(zone.value));
+  if (nomsImportes.length === 0) {
+    alert('Aucun nom valide à importer.');
+    return;
+  }
+
+  listeNoms = nomsImportes;
+  trierNoms();
+  sauvegarderListeNoms();
+  renderListeNoms();
+  remplirSelectsJoueurs();
+  zone.value = JSON.stringify(listeNoms, null, 2);
+  alert(`${listeNoms.length} nom(s) importé(s).`);
 }
 
 function showPanel(which) {
@@ -1419,7 +1527,7 @@ if (window.innerWidth <= 600) {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=6', { updateViaCache: 'none' }).catch(() => {});
+    navigator.serviceWorker.register('./sw.js?v=7', { updateViaCache: 'none' }).catch(() => {});
   });
 }
 </script>
