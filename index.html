@@ -573,19 +573,15 @@
     <div class="card" id="panelSaisie">
       <h1>Scores Tarot Gino</h1>
 
-      <details class="nb-joueurs" id="detailsNbJoueurs">
-        <summary class="collapse-summary">
-          <span class="collapse-summary-text">Nombre de joueurs</span>
-        </summary>
-        <div class="field compact mt-4">
-          <label for="nbJoueurs">Nombre de joueurs</label>
-          <select id="nbJoueurs">
-            <option value="3">3 joueurs</option>
-            <option value="4" selected>4 joueurs</option>
-            <option value="5">5 joueurs (mort tournante)</option>
-          </select>
-        </div>
-      </details>
+      <div class="field compact">
+        <label for="nbJoueurs">Mode de partie</label>
+        <select id="nbJoueurs">
+          <option value="3x2">3 joueurs (score X2)</option>
+          <option value="3x3">3 joueurs (score X3)</option>
+          <option value="4" selected>4 joueurs</option>
+          <option value="5">5 joueurs (avec mort)</option>
+        </select>
+      </div>
 
       <details class="nb-joueurs" id="detailsMort">
         <summary class="collapse-summary">
@@ -840,8 +836,26 @@ function trierNoms() {
   listeNoms.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
 }
 
+function getModePartie() {
+  return document.getElementById('nbJoueurs').value || '4';
+}
+
+function getNombreJoueurs() {
+  const mode = getModePartie();
+  if (mode === '3x2' || mode === '3x3') return 3;
+  return Number(mode || 4);
+}
+
+function estModeCinqJoueurs() {
+  return getModePartie() === '5';
+}
+
+function estModeTroisJoueursX3() {
+  return getModePartie() === '3x3';
+}
+
 function mettreAJourChampsJoueurs() {
-  const nb = Number(document.getElementById('nbJoueurs').value);
+  const nb = getNombreJoueurs();
 
   for (let i = 1; i <= 5; i++) {
     const champ = document.getElementById(`fieldJ${i}`);
@@ -953,6 +967,24 @@ function setContrat(value, buttonEl) {
   document.querySelectorAll('.contract-btn').forEach(btn => {
     btn.classList.toggle('active', btn === buttonEl);
   });
+}
+
+function appliquerChangementNbJoueurs() {
+  const nb = getNombreJoueurs();
+  const detailsMort = document.getElementById('detailsMort');
+
+  if (indexMortActuel > nb) indexMortActuel = 1;
+  mettreAJourChampsJoueurs();
+  mettreAJourPreneur();
+  mettreAJourMortSelect();
+  afficherTableauScores();
+
+  if (detailsMort) {
+    detailsMort.style.display = estModeCinqJoueurs() ? 'block' : 'none';
+    if (!estModeCinqJoueurs() && detailsMort.hasAttribute('open')) {
+      detailsMort.removeAttribute('open');
+    }
+  }
 }
 
 function updateCompactFieldState(field) {
@@ -1192,7 +1224,7 @@ function choisirJoueur(i, nom) {
 
 function mettreAJourMortSelect() {
   const mortSelect = document.getElementById('mortSelect');
-  const nb = Number(document.getElementById('nbJoueurs').value);
+  const nb = getNombreJoueurs();
   mortSelect.innerHTML = "";
   for (let i = 1; i <= nb; i++) {
     const opt = document.createElement('option');
@@ -1204,7 +1236,7 @@ function mettreAJourMortSelect() {
 }
 
 function changerMortManuel(val) {
-  const nbJoueurs = Number(document.getElementById('nbJoueurs').value);
+  const nbJoueurs = getNombreJoueurs();
   let idx = Number(val || 1);
   if (idx < 1 || idx > nbJoueurs) idx = 1;
   indexMortActuel = idx;
@@ -1223,7 +1255,7 @@ function getNom(i) {
 }
 
 function mettreAJourPreneur() {
-  const nb = Number(document.getElementById('nbJoueurs').value);
+  const nb = getNombreJoueurs();
   const preneurSelect = document.getElementById('preneur');
   const ancien = preneurSelect.value || "";
 
@@ -1237,7 +1269,7 @@ function mettreAJourPreneur() {
     const opt = document.createElement('option');
     opt.value = i;
     opt.textContent = getNom(i);
-    if (nb === 5 && i === indexMortActuel) {
+    if (estModeCinqJoueurs() && i === indexMortActuel) {
       opt.disabled = true;
     }
     preneurSelect.appendChild(opt);
@@ -1248,39 +1280,18 @@ function mettreAJourPreneur() {
   if (!nouveau || nouveauNum > nb) {
     nouveau = "";
   }
-  if (nb === 5 && nouveauNum === indexMortActuel) {
+  if (estModeCinqJoueurs() && nouveauNum === indexMortActuel) {
     nouveau = "";
   }
   preneurSelect.value = String(nouveau);
   updateCompactFieldState(preneurSelect.closest('.field.compact'));
 }
 
-document.getElementById('nbJoueurs').addEventListener('change', () => {
-  const nb = Number(document.getElementById('nbJoueurs').value);
-  const detailsMort = document.getElementById('detailsMort');
-
-  if (indexMortActuel > nb) indexMortActuel = 1;
-  mettreAJourChampsJoueurs();
-  mettreAJourPreneur();
-  mettreAJourMortSelect();
-  afficherTableauScores();
-
-  const details = document.getElementById('detailsNbJoueurs');
-  if (details && details.hasAttribute('open')) {
-    details.removeAttribute('open');
-  }
-
-  if (detailsMort) {
-    detailsMort.style.display = (nb === 5) ? 'block' : 'none';
-    if (nb !== 5 && detailsMort.hasAttribute('open')) {
-      detailsMort.removeAttribute('open');
-    }
-  }
-});
+document.getElementById('nbJoueurs').addEventListener('change', appliquerChangementNbJoueurs);
 
 function calculerScore() {
   const coef = Number(document.getElementById('contrat').value);
-  const nbJoueurs = Number(document.getElementById('nbJoueurs').value);
+  const nbJoueurs = getNombreJoueurs();
   const preneurValue = document.getElementById('preneur').value;
   if (!preneurValue) {
     alert("Choisis un preneur.");
@@ -1321,15 +1332,21 @@ function calculerScore() {
 
   const S = scoreContrat + primePetit + ajustementPoignee + primeChelem;
 
-  if (nbJoueurs === 5 && preneurId === indexMortActuel) {
+  if (estModeCinqJoueurs() && preneurId === indexMortActuel) {
     alert("En 5 joueurs, le mort ne peut pas être preneur.\nChoisis un autre joueur preneur.");
     return;
   }
 
   let roleScores = [];
-  if (nbJoueurs === 3) roleScores = [S * 2, -S, -S];
-  else if (nbJoueurs === 4) roleScores = [S * 3, -S, -S, -S];
-  else if (nbJoueurs === 5) roleScores = [S * 3, -S, -S, -S];
+  if (nbJoueurs === 3) {
+    roleScores = estModeTroisJoueursX3()
+      ? [S * 3, -S, -S]
+      : [S * 2, -S, -S];
+  } else if (nbJoueurs === 4) {
+    roleScores = [S * 3, -S, -S, -S];
+  } else if (nbJoueurs === 5) {
+    roleScores = [S * 3, -S, -S, -S];
+  }
 
   let joueursScores = new Array(nbJoueurs).fill(0);
   joueursScores[preneurId - 1] = roleScores[0];
@@ -1337,7 +1354,7 @@ function calculerScore() {
   let roleIndex = 1;
   for (let i = 0; i < nbJoueurs; i++) {
     if (i === preneurId - 1) continue;
-    if (nbJoueurs === 5 && (i + 1) === indexMortActuel) continue;
+    if (estModeCinqJoueurs() && (i + 1) === indexMortActuel) continue;
     joueursScores[i] = roleScores[roleIndex] || 0;
     roleIndex++;
   }
@@ -1362,7 +1379,7 @@ function calculerScore() {
     const score = derniersScores[i] || 0;
     let label = getNom(i + 1);
     if (i === preneurId - 1) label += " (Preneur)";
-    if (nbJoueurs === 5 && (i + 1) === indexMortActuel) label += " – mort";
+    if (estModeCinqJoueurs() && (i + 1) === indexMortActuel) label += " – mort";
     inner += `<div class="line"><span>${label}</span><span>${score > 0 ? "+" : ""}${score}</span></div>`;
   }
 
@@ -1393,18 +1410,18 @@ function calculerScore() {
 }
 
 function validerDonneAuto() {
-  const nbJoueurs = Number(document.getElementById('nbJoueurs').value);
+  const nbJoueurs = getNombreJoueurs();
 
   const donne = {
     id: prochainIdDonne++,
     nbJoueurs: nbJoueurs,
-    mort: (nbJoueurs === 5 ? indexMortActuel : 0),
+    mort: (estModeCinqJoueurs() ? indexMortActuel : 0),
     scores: derniersScores.slice(0, nbJoueurs)
   };
   historiqueDonnes.push(donne);
   sauvegarderHistorique();
 
-  if (nbJoueurs === 5) {
+  if (estModeCinqJoueurs()) {
     indexMortActuel++;
     if (indexMortActuel > 5) indexMortActuel = 1;
     mettreAJourMortSelect();
@@ -1447,7 +1464,7 @@ function effacerTout() {
 }
 
 function afficherTableauScores() {
-  const nbJoueurs = Number(document.getElementById('nbJoueurs').value);
+  const nbJoueurs = getNombreJoueurs();
 
   let html = '<div class="section-title"></div>';
   html += '<table>';
@@ -1524,12 +1541,13 @@ mettreAJourMortSelect();
 afficherTableauScores();
 remplirSelectEcart();
 initCompactFields();
+appliquerChangementNbJoueurs();
 
 (function () {
-  const nb = Number(document.getElementById('nbJoueurs').value);
+  const nb = getNombreJoueurs();
   const detailsMort = document.getElementById('detailsMort');
   if (detailsMort) {
-    detailsMort.style.display = (nb === 5) ? 'block' : 'none';
+    detailsMort.style.display = estModeCinqJoueurs() ? 'block' : 'none';
   }
 })();
 
