@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>scores tarot Gino</title>
+<meta name="theme-color" content="#181824" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Score Tarot" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" href="./icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="./icon.svg" />
+
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: radial-gradient(circle at top, #2e3350, #181824 60%, #0b0b12);
+    color: #f5f5f5;
+  }
+
+  .layout {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    max-width: 960px;
+    padding: 16px;
+    flex-direction: column;
+  }
+
+  .tabs {
+    display: none;
+    margin-bottom: 8px;
+  }
+
+  .tab-btn {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(10,10,20,0.9);
+    color: #e0e0ff;
+    font-size: 13px;
+    cursor: pointer;
+    margin-right: 6px;
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, #7c5cff, #ff6fb1);
+    border-color: transparent;
+    color: white;
+  }
+
+  .panels {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .card, .scores-card, .players-card, .names-card {
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+  }
+
+  .card {
+    background: rgba(15, 15, 25, 0.95);
+    padding: 18px 22px 22px;
+    width: 440px;
+    max-width: 100%;
+  }
+
+  .scores-card {
+    background: rgba(10, 10, 18, 0.95);
+    padding: 16px 20px 20px;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 16px;
+    border: 4px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .players-card, .names-card {
+    background: rgba(15, 15, 25, 0.95);
+    padding: 16px 20px 20px;
+    width: 440px;
+    max-width: 100%;
+  }
+
+  h1 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    text-align: center;
+  }
+
+  h2 {
+    margin: 0 0 10px;
+    font-size: 16px;
+  }
+
+  .row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .field {
+    margin-bottom: 8px;
+    flex: 1;
+  }
+
+  .field.compact {
+    position: relative;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    margin-bottom: 1px;
+    color: #d2d2e0;
+  }
+
+  .field.compact label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 12px 12px;
+    border-radius: 8px;
+    border: 1px solid #3a3a4f;
+    background: #161621;
+    color: #f5f5f5;
+    font-size: 15px;
+    min-height: 50px;
+  }
+
+  .field.compact input,
+  .field.compact select {
+    padding-top: 18px;
+    padding-bottom: 10px;
+    color: rgba(210, 210, 224, 0.78);
+  }
+
+  .field.compact.has-value input,
+  .field.compact.has-value select {
+    color: #f5f5f5;
+  }
+
+  .field.compact input::placeholder {
+    color: rgba(210, 210, 224, 0.58);
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: #7c5cff;
+    box-shadow: 0 0 0 1px rgba(124, 92, 255, 0.4);
+  }
+
+  .buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .contract-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .contract-btn {
+    padding: 12px 10px;
+    border-radius: 8px;
+    border: 1px solid #3a3a4f;
+    background: #161621;
+    color: #f5f5f5;
+    font-size: 18px;
+    font-weight: 600;
+    min-height: 56px;
+    box-shadow: none;
+  }
+
+  .contract-btn.active {
+    background: linear-gradient(135deg, #7c5cff, #ff6fb1);
+    border-color: transparent;
+  }
+
+  button {
+    padding: 12px 14px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #7c5cff, #ff6fb1);
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+    min-height: 50px;
+  }
+
+  button.secondary {
+    background: #252538;
+    box-shadow: none;
+  }
+
+  button.small-btn {
+    padding: 3px 8px;
+    font-size: 11px;
+    border-radius: 999px;
+    background: #3a3a50;
+    min-height: 0;
+    box-shadow: none;
+  }
+
+  .btn-trash {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    min-height: 0;
+    border-radius: 0;
+    font-size: 12px;
+    background: transparent;
+    border: none;
+    flex: 0 0 auto;
+  }
+
+  .btn-trash:hover {
+    filter: none;
+  }
+
+  .cell-id {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .cell-id .btn-trash {
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+
+  button:hover {
+    filter: brightness(1.05);
+  }
+
+  #result {
+    margin-top: 10px;
+    font-size: 12px;
+  }
+
+  #result details {
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  #result summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 12px;
+    color: #d2d2e0;
+  }
+
+  #result summary::-webkit-details-marker {
+    display: none;
+  }
+
+  #result summary::before {
+    content: "▶ ";
+    font-size: 10px;
+  }
+
+  #result details[open] summary::before {
+    content: "▼ ";
+  }
+
+  .result-content {
+    margin-top: 4px;
+  }
+
+  .line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+
+  .line span:first-child {
+    color: #c0c8e0;
+  }
+
+  .line span:last-child {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+
+  .hint {
+    margin-top: 4px;
+    font-size: 10px;
+    color: #9c9cc0;
+  }
+
+  .success {
+    color: #4ade80;
+  }
+
+  .fail {
+    color: #fb7185;
+  }
+
+  .section-title {
+    margin-top: 6px;
+    margin-bottom: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #e0e0ff;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding-bottom: 1px;
+  }
+
+  .small {
+    font-size: 11px;
+    color: #a0a0c0;
+    margin-top: 6px;
+  }
+
+  table {
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  #tableauScores table {
+    width: 100%;
+    table-layout: fixed;
+    margin: 0 auto;
+    border: 2px solid rgba(255,255,255,0.4);
+  }
+
+  #tableauScores col.score-id-col {
+    width: 48px;
+  }
+
+  th, td {
+    padding: 4px 6px;
+    border-bottom: 1px solid rgba(255,255,255,0.16);
+    text-align: center;
+    white-space: nowrap;
+    line-height: 3;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  th:not(:first-child),
+  td:not(:first-child) {
+    border-left: 1px solid rgba(255,255,255,0.14);
+  }
+
+  th {
+    color: #d0d0f0;
+    background: rgba(255,255,255,0.06);
+  }
+
+  #tableauScores tr.score-header th {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: break-word;
+  }
+
+  #tableauScores tr.score-header th:first-child {
+    white-space: nowrap;
+  }
+
+  #tableauScores tr.score-header th:not(:first-child) {
+    height: 2.6em;
+  }
+
+  tr:nth-child(even) td {
+    background: rgba(255,255,255,0.02);
+  }
+
+  tr:nth-child(odd) td {
+    background: transparent;
+  }
+
+  tr.total-row th {
+    border-top: 2px solid rgba(255,255,255,0.35);
+    border-bottom: 2px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.08);
+    font-size: 14px;
+  }
+
+  .mort-cell {
+    color: #555;
+  }
+
+  .negative {
+    color: #fb7185;
+  }
+
+  .players-select-row {
+    margin-top: 6px;
+  }
+
+  .players-list {
+    margin-top: 4px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding-right: 12px;
+  }
+
+  .players-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2px;
+    gap: 4px;
+  }
+
+  .players-list-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .collapse-summary {
+    font-size: 11px;
+    color: #c0c8e0;
+    cursor: pointer;
+  }
+
+  .collapse-summary-text {
+    text-decoration: underline;
+  }
+
+  details.nb-joueurs {
+    margin: 4px 0 6px;
+  }
+
+  .mt-4 {
+    margin-top: 4px;
+  }
+
+  .mt-8 {
+    margin-top: 8px;
+  }
+
+  .flex-zero {
+    flex: 0;
+  }
+
+  .quit-bar {
+    margin-top: 8px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  @media (max-width: 600px) {
+    body {
+      align-items: stretch;
+      justify-content: flex-start;
+    }
+    .layout {
+      max-width: 100%;
+      padding: 10px;
+    }
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .panels {
+      flex-direction: column;
+    }
+    .card, .scores-card, .players-card, .names-card {
+      width: 100%;
+    }
+    .card, .scores-card, .players-card, .names-card {
+      display: none;
+    }
+    .card.active-panel,
+    .scores-card.active-panel,
+    .players-card.active-panel,
+    .names-card.active-panel {
+      display: block;
+    }
+    .row {
+      flex-direction: row;
+    }
+    .buttons {
+      flex-direction: column;
+    }
+    .field {
+      margin-bottom: 6px;
+    }
+  }
+
+  @media (min-width: 601px) {
+    .tabs {
+      display: none;
+    }
+    .card, .scores-card, .players-card, .names-card {
+      display: block;
+    }
+    .scores-card, .names-card {
+      width: 360px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabSaisie" onclick="showPanel('saisie')">Saisie</button>
+    <button class="tab-btn" id="tabRecap" onclick="showPanel('recap')">Feuille</button>
+    <button class="tab-btn" id="tabJoueurs" onclick="showPanel('joueurs')">Joueurs</button>
+    <button class="tab-btn" id="tabNoms" onclick="showPanel('noms')">Noms</button>
+  </div>
+
+  <div class="panels">
+    <!-- Saisie -->
+    <div class="card" id="panelSaisie">
+      <h1>Scores Tarot Gino</h1>
+
+      <details class="nb-joueurs" id="detailsNbJoueurs">
+        <summary class="collapse-summary">
+          <span class="collapse-summary-text">Nombre de joueurs</span>
+        </summary>
+        <div class="field compact mt-4">
+          <label for="nbJoueurs">Nombre de joueurs</label>
+          <select id="nbJoueurs">
+            <option value="3">3 joueurs</option>
+            <option value="4" selected>4 joueurs</option>
+            <option value="5">5 joueurs (mort tournante)</option>
+          </select>
+        </div>
+      </details>
+
+      <details class="nb-joueurs" id="detailsMort">
+        <summary class="collapse-summary">
+          <span class="collapse-summary-text">Mort (en 5 joueurs)</span>
+        </summary>
+        <div class="field compact mt-4">
+          <label for="mortSelect">Joueur mort</label>
+          <select id="mortSelect" onchange="changerMortManuel(this.value)"></select>
+        </div>
+        <div class="small">
+          Utilisé uniquement en 5 joueurs. Par défaut, le mort tourne automatiquement, mais tu peux corriger ici.
+        </div>
+      </details>
+
+      <div class="field compact">
+        <label for="preneur">Preneur</label>
+        <select id="preneur"></select>
+      </div>
+
+      <div class="field">
+        <input id="contrat" type="hidden" value="2" />
+        <div class="contract-buttons" role="group" aria-label="Contrat">
+          <button type="button" class="contract-btn" data-value="1" onclick="setContrat(1, this)">P</button>
+          <button type="button" class="contract-btn active" data-value="2" onclick="setContrat(2, this)">G</button>
+          <button type="button" class="contract-btn" data-value="4" onclick="setContrat(4, this)">GS</button>
+          <button type="button" class="contract-btn" data-value="6" onclick="setContrat(6, this)">GC</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field compact">
+          <label for="ecart">Écart</label>
+          <select id="ecart">
+            <!-- options -54 à +53 ajoutées en JS -->
+          </select>
+        </div>
+        <div class="field compact">
+          <label for="petitAuBout">Petit au bout</label>
+          <select id="petitAuBout">
+            <option value="">Petit au bout</option>
+            <option value="aucun">Aucun</option>
+            <option value="attaque">Attaque</option>
+            <option value="defense">Défense</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field compact">
+          <label for="poignee">Poignée</label>
+          <select id="poignee">
+            <option value="">Poignée</option>
+            <option value="aucune">Aucune</option>
+            <option value="simple">Simple (+20)</option>
+            <option value="double">Double (+30)</option>
+            <option value="triple">Triple (+40)</option>
+            <option value="double_camp">Poignée en attaque et en défense (+40)</option>
+          </select>
+        </div>
+        <div class="field compact">
+          <label for="chelem">Chelem</label>
+          <select id="chelem">
+            <option value="">Chelem</option>
+            <option value="aucun">Aucun</option>
+            <option value="non_annonce_reussi">Non annoncé mais réussi (+200)</option>
+            <option value="annonce_reussi">Annoncé et réussi (+400)</option>
+            <option value="annonce_rate">Annoncé mais raté (−200)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="buttons">
+        <button type="button" onclick="calculerScore()">Calculer</button>
+        <button type="button" class="secondary" onclick="effacerTout()">Tout effacer</button>
+      </div>
+
+      <div id="result"></div>
+    </div>
+
+    <!-- Feuille de marque -->
+    <div class="scores-card" id="panelRecap">
+      <div id="tableauScores" class="small">
+        Saisis une donne, clique sur “Calculer”.
+      </div>
+    </div>
+
+    <!-- Joueurs replié -->
+    <div class="players-card" id="panelJoueurs">
+      <details>
+        <summary class="collapse-summary"><span class="collapse-summary-text">Joueurs de la partie</span></summary>
+        <div class="mt-8">
+          <div class="players-select-row">
+            <div class="field">
+              <label for="selectJ1">Joueur 1</label>
+              <select id="selectJ1" class="select-joueur" onchange="choisirJoueur(1, this.value)"></select>
+            </div>
+            <div class="field">
+              <label for="selectJ2">Joueur 2</label>
+              <select id="selectJ2" class="select-joueur" onchange="choisirJoueur(2, this.value)"></select>
+            </div>
+          </div>
+          <div class="players-select-row">
+            <div class="field">
+              <label for="selectJ3">Joueur 3</label>
+              <select id="selectJ3" class="select-joueur" onchange="choisirJoueur(3, this.value)"></select>
+            </div>
+            <div class="field">
+              <label for="selectJ4">Joueur 4</label>
+              <select id="selectJ4" class="select-joueur" onchange="choisirJoueur(4, this.value)"></select>
+            </div>
+          </div>
+          <div class="players-select-row">
+            <div class="field">
+              <label for="selectJ5">Joueur 5</label>
+              <select id="selectJ5" class="select-joueur" onchange="choisirJoueur(5, this.value)"></select>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <!-- Noms replié -->
+    <div class="names-card" id="panelNoms">
+      <details>
+        <summary class="collapse-summary"><span class="collapse-summary-text">Noms disponibles</span></summary>
+        <div class="mt-8">
+          <div class="row">
+            <div class="field">
+              <input id="nouveauNom" type="text" placeholder="Nouveau nom" />
+            </div>
+            <div class="field flex-zero">
+              <label>&nbsp;</label>
+              <button type="button" class="small-btn" onclick="ajouterNom()">Ajouter</button>
+            </div>
+          </div>
+
+          <div class="players-list" id="listeNomsContainer">
+            <!-- noms dynamiques -->
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div class="quit-bar">
+    <button type="button" class="secondary" onclick="quitterApp()">Quitter l’app</button>
+  </div>
+</div>
+
+<script>
+let derniersScores = [0, 0, 0, 0, 0];
+let historiqueDonnes = [];
+let prochainIdDonne = 1;
+let indexMortActuel = 1; // 1..5
+
+const NOMS_STORAGE_KEY = 'scores_tarot_gino_noms';
+const HISTO_STORAGE_KEY = 'scores_tarot_gino_historique';
+const MORT_STORAGE_KEY  = 'scores_tarot_gino_mort';
+const NOMS_JOUEURS_STORAGE_KEY = 'scores_tarot_gino_noms_joueurs';
+let listeNoms = [];
+let nomsJoueurs = ["", "", "", "", ""];
+
+function remplirSelectEcart() {
+  const select = document.getElementById('ecart');
+  select.innerHTML = "";
+  const min = -54;
+  const max = 53;
+
+  // 1. Construire la liste des valeurs
+  const values = [];
+  for (let v = min; v <= max; v++) {
+    values.push(v);
+  }
+
+  // 2. Trier : positifs décroissants, 0, négatifs décroissants
+  values.sort((a, b) => {
+    // cas du 0 : il doit être entre positifs et négatifs
+    if (a === 0 && b !== 0) return (b > 0) ? 1 : -1;  // 0 après les positifs, avant les négatifs
+    if (b === 0 && a !== 0) return (a > 0) ? -1 : 1;
+
+    const aPos = a > 0;
+    const bPos = b > 0;
+
+    // positifs avant négatifs
+    if (aPos && !bPos) return -1;
+    if (!aPos && bPos) return 1;
+
+    // dans chaque groupe (tous deux >0 ou tous deux <0) : décroissant
+    return b - a;
+  });
+
+  // 3. Remplir le select
+  values.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = (v > 0 ? "+" + v : v.toString());
+    if (v === 0) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+
+function quitterApp() {
+  const afficherEcranSortie = (message) => {
+    document.body.innerHTML = `
+      <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;
+                  font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+                  background:radial-gradient(circle at top,#2e3350,#181824 60%,#0b0b12);
+                  color:#f5f5f5;text-align:center;padding:16px;">
+        <div>
+          <h1 style="margin-bottom:8px;">À bientôt</h1>
+          <p style="margin:0;">${message}</p>
+        </div>
+      </div>
+    `;
+  };
+
+  const enModeApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+  try {
+    window.open('', '_self');
+  } catch (e) {}
+
+  try {
+    window.close();
+  } catch (e) {}
+
+  window.setTimeout(() => {
+    if (document.visibilityState === 'hidden') return;
+
+    try {
+      window.location.replace('about:blank');
+      return;
+    } catch (e) {}
+
+    afficherEcranSortie(
+      enModeApp
+        ? "La fermeture automatique n'est pas autorisée sur cet appareil. Ferme l'app depuis le sélecteur d'apps."
+        : "La fermeture automatique n'est pas autorisée ici. Ferme cet onglet si besoin."
+    );
+  }, 120);
+}
+
+function trierNoms() {
+  listeNoms.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+}
+
+function showPanel(which) {
+  const idsPanels = {
+    saisie: 'panelSaisie',
+    recap: 'panelRecap',
+    joueurs: 'panelJoueurs',
+    noms: 'panelNoms'
+  };
+  const idsTabs = {
+    saisie: 'tabSaisie',
+    recap: 'tabRecap',
+    joueurs: 'tabJoueurs',
+    noms: 'tabNoms'
+  };
+
+  if (window.innerWidth <= 600) {
+    Object.values(idsPanels).forEach(id => {
+      document.getElementById(id).classList.remove('active-panel');
+    });
+    Object.values(idsTabs).forEach(id => {
+      document.getElementById(id).classList.remove('active');
+    });
+
+    document.getElementById(idsPanels[which]).classList.add('active-panel');
+    document.getElementById(idsTabs[which]).classList.add('active');
+  }
+}
+
+function setContrat(value, buttonEl) {
+  document.getElementById('contrat').value = String(value);
+  document.querySelectorAll('.contract-btn').forEach(btn => {
+    btn.classList.toggle('active', btn === buttonEl);
+  });
+}
+
+function updateCompactFieldState(field) {
+  if (!field) return;
+  const control = field.querySelector('input, select');
+  if (!control) return;
+  field.classList.toggle('has-value', String(control.value || '').trim() !== '');
+}
+
+function initCompactFields() {
+  document.querySelectorAll('.field.compact').forEach(field => {
+    const control = field.querySelector('input, select');
+    if (!control) return;
+
+    if (control.dataset.compactBound === 'true') {
+      updateCompactFieldState(field);
+      return;
+    }
+
+    const refresh = () => updateCompactFieldState(field);
+    control.addEventListener('change', refresh);
+    control.addEventListener('input', refresh);
+    control.dataset.compactBound = 'true';
+    refresh();
+  });
+}
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth <= 600) {
+    const card = document.getElementById('panelSaisie');
+    const recap = document.getElementById('panelRecap');
+    const joueurs = document.getElementById('panelJoueurs');
+    const noms = document.getElementById('panelNoms');
+    if (!card.classList.contains('active-panel') &&
+        !recap.classList.contains('active-panel') &&
+        !joueurs.classList.contains('active-panel') &&
+        !noms.classList.contains('active-panel')) {
+      showPanel('saisie');
+    }
+  } else {
+    ['panelSaisie','panelRecap','panelJoueurs','panelNoms'].forEach(id => {
+      document.getElementById(id).classList.remove('active-panel');
+    });
+  }
+});
+
+function chargerListeNoms() {
+  try {
+    const data = localStorage.getItem(NOMS_STORAGE_KEY);
+    if (data) {
+      const arr = JSON.parse(data);
+      if (Array.isArray(arr) && arr.length > 0) {
+        listeNoms = arr;
+        trierNoms();
+        return;
+      }
+    }
+  } catch (e) {}
+  listeNoms = ["Gino", "Denis", "Georges", "Fréderic", "Michel Lab", "Daniel", "Monique"];
+  trierNoms();
+}
+
+function sauvegarderListeNoms() {
+  try {
+    localStorage.setItem(NOMS_STORAGE_KEY, JSON.stringify(listeNoms));
+  } catch (e) {}
+}
+
+function sauvegarderHistorique() {
+  try {
+    localStorage.setItem(HISTO_STORAGE_KEY, JSON.stringify(historiqueDonnes));
+    localStorage.setItem(MORT_STORAGE_KEY, String(indexMortActuel));
+  } catch (e) {}
+}
+
+function chargerHistorique() {
+  try {
+    const raw = localStorage.getItem(HISTO_STORAGE_KEY);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) {
+        historiqueDonnes = arr;
+        if (historiqueDonnes.length > 0) {
+          const maxId = Math.max(...historiqueDonnes.map(d => d.id || 0));
+          prochainIdDonne = maxId + 1;
+        }
+      }
+    }
+    const mortStr = localStorage.getItem(MORT_STORAGE_KEY);
+    if (mortStr) {
+      const m = Number(mortStr);
+      if (!isNaN(m) && m >= 1 && m <= 5) {
+        indexMortActuel = m;
+      }
+    }
+  } catch (e) {}
+}
+
+function sauvegarderNomsJoueurs() {
+  try {
+    localStorage.setItem(NOMS_JOUEURS_STORAGE_KEY, JSON.stringify(nomsJoueurs));
+  } catch (e) {}
+}
+
+function chargerNomsJoueurs() {
+  try {
+    const data = localStorage.getItem(NOMS_JOUEURS_STORAGE_KEY);
+    if (data) {
+      const arr = JSON.parse(data);
+      if (Array.isArray(arr) && arr.length === 5) {
+        nomsJoueurs = arr;
+      }
+    }
+  } catch (e) {}
+}
+
+function renderListeNoms() {
+  const container = document.getElementById('listeNomsContainer');
+  container.innerHTML = "";
+  if (listeNoms.length === 0) {
+    container.innerHTML = "<div class='small'>Aucun nom dans la liste.</div>";
+    return;
+  }
+  listeNoms.forEach((nom, index) => {
+    const row = document.createElement('div');
+    row.className = 'players-list-item';
+    const span = document.createElement('span');
+    span.className = 'players-list-name';
+    span.textContent = nom;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-trash';
+    btn.textContent = '🗑️';
+    btn.title = 'Supprimer ce nom';
+    btn.onclick = () => supprimerNom(index);
+    row.appendChild(span);
+    row.appendChild(btn);
+    container.appendChild(row);
+  });
+}
+
+function remplirSelectsJoueurs() {
+  const selects = [
+    document.getElementById('selectJ1'),
+    document.getElementById('selectJ2'),
+    document.getElementById('selectJ3'),
+    document.getElementById('selectJ4'),
+    document.getElementById('selectJ5')
+  ];
+
+  const valeursActuelles = nomsJoueurs.slice();
+
+  trierNoms();
+  const nomsTries = listeNoms.slice();
+
+  selects.forEach((sel, idx) => {
+    const valeurCourante = valeursActuelles[idx] || "";
+    sel.innerHTML = "";
+    const optVide = document.createElement('option');
+    optVide.value = "";
+    optVide.textContent = "(aucun)";
+    sel.appendChild(optVide);
+
+    nomsTries.forEach(n => {
+      const opt = document.createElement('option');
+      opt.value = n;
+      opt.textContent = n;
+
+      if (valeurCourante !== n && valeursActuelles.includes(n)) {
+        opt.disabled = true;
+      }
+
+      sel.appendChild(opt);
+    });
+
+    sel.value = valeurCourante || "";
+  });
+
+  mettreAJourPreneur();
+  mettreAJourMortSelect();
+  afficherTableauScores();
+}
+
+function initialiserNomsParDefaut() {
+  for (let i = 0; i < 5; i++) {
+    nomsJoueurs[i] = listeNoms[i] || "";
+  }
+}
+
+function ajouterNom() {
+  const input = document.getElementById('nouveauNom');
+  const val = (input.value || "").trim();
+  if (!val) return;
+  if (!listeNoms.includes(val)) {
+    listeNoms.push(val);
+    trierNoms();
+    sauvegarderListeNoms();
+    renderListeNoms();
+    remplirSelectsJoueurs();
+  }
+  input.value = "";
+}
+
+function supprimerNom(index) {
+  const nomSupprime = listeNoms[index];
+  listeNoms.splice(index, 1);
+  for (let i = 0; i < nomsJoueurs.length; i++) {
+    if (nomsJoueurs[i] === nomSupprime) {
+      nomsJoueurs[i] = "";
+    }
+  }
+  trierNoms();
+  sauvegarderListeNoms();
+  renderListeNoms();
+  remplirSelectsJoueurs();
+}
+
+function choisirJoueur(i, nom) {
+  const ancienNom = nomsJoueurs[i - 1];
+  const nouveauNom = nom || "";
+
+  if (nouveauNom) {
+    for (let j = 0; j < nomsJoueurs.length; j++) {
+      if (j !== (i - 1) && nomsJoueurs[j] === nouveauNom) {
+        alert("Ce nom est déjà utilisé par un autre joueur. Choisis-en un autre.");
+        const sel = document.getElementById("selectJ" + i);
+        sel.value = ancienNom || "";
+        return;
+      }
+    }
+  }
+
+  nomsJoueurs[i - 1] = nouveauNom;
+  remplirSelectsJoueurs();
+  sauvegarderNomsJoueurs();
+}
+
+function mettreAJourMortSelect() {
+  const mortSelect = document.getElementById('mortSelect');
+  const nb = Number(document.getElementById('nbJoueurs').value);
+  mortSelect.innerHTML = "";
+  for (let i = 1; i <= nb; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = getNom(i);
+    mortSelect.appendChild(opt);
+  }
+  mortSelect.value = String(indexMortActuel);
+}
+
+function changerMortManuel(val) {
+  const nbJoueurs = Number(document.getElementById('nbJoueurs').value);
+  let idx = Number(val || 1);
+  if (idx < 1 || idx > nbJoueurs) idx = 1;
+  indexMortActuel = idx;
+  mettreAJourPreneur();
+  afficherTableauScores();
+
+  const mortDetails = document.getElementById('detailsMort');
+  if (mortDetails && mortDetails.hasAttribute('open')) {
+    mortDetails.removeAttribute('open');
+  }
+}
+
+function getNom(i) {
+  const nom = nomsJoueurs[i - 1];
+  return nom && nom.trim() ? nom.trim() : ("Joueur " + i);
+}
+
+function mettreAJourPreneur() {
+  const nb = Number(document.getElementById('nbJoueurs').value);
+  const preneurSelect = document.getElementById('preneur');
+  const ancien = preneurSelect.value || "";
+
+  preneurSelect.innerHTML = "";
+  const placeholder = document.createElement('option');
+  placeholder.value = "";
+  placeholder.textContent = "Preneur";
+  preneurSelect.appendChild(placeholder);
+
+  for (let i = 1; i <= nb; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = getNom(i);
+    if (nb === 5 && i === indexMortActuel) {
+      opt.disabled = true;
+    }
+    preneurSelect.appendChild(opt);
+  }
+
+  let nouveau = ancien;
+  const nouveauNum = Number(nouveau || 0);
+  if (!nouveau || nouveauNum > nb) {
+    nouveau = "";
+  }
+  if (nb === 5 && nouveauNum === indexMortActuel) {
+    nouveau = "";
+  }
+  preneurSelect.value = String(nouveau);
+  updateCompactFieldState(preneurSelect.closest('.field.compact'));
+}
+
+document.getElementById('nbJoueurs').addEventListener('change', () => {
+  const nb = Number(document.getElementById('nbJoueurs').value);
+  const detailsMort = document.getElementById('detailsMort');
+
+  if (indexMortActuel > nb) indexMortActuel = 1;
+  mettreAJourPreneur();
+  mettreAJourMortSelect();
+  afficherTableauScores();
+
+  const details = document.getElementById('detailsNbJoueurs');
+  if (details && details.hasAttribute('open')) {
+    details.removeAttribute('open');
+  }
+
+  if (detailsMort) {
+    detailsMort.style.display = (nb === 5) ? 'block' : 'none';
+    if (nb !== 5 && detailsMort.hasAttribute('open')) {
+      detailsMort.removeAttribute('open');
+    }
+  }
+});
+
+function calculerScore() {
+  const coef = Number(document.getElementById('contrat').value);
+  const nbJoueurs = Number(document.getElementById('nbJoueurs').value);
+  const preneurValue = document.getElementById('preneur').value;
+  if (!preneurValue) {
+    alert("Choisis un preneur.");
+    return;
+  }
+  const preneurId = Number(preneurValue);
+  const petitAuBout = document.getElementById('petitAuBout').value || 'aucun';
+  const poignee = document.getElementById('poignee').value || 'aucune';
+  const chelem = document.getElementById('chelem').value || 'aucun';
+  let ecart = Number(document.getElementById('ecart').value || 0);
+
+  const diffBrut = ecart;
+  const ecartAbsolu = Math.abs(diffBrut);
+
+  let scoreContrat = (25 + ecartAbsolu) * coef;
+  const reussite = diffBrut >= 0;
+  if (!reussite) scoreContrat = -scoreContrat;
+
+  let primePetit = 0;
+  if (petitAuBout === "attaque") primePetit = 10 * coef;
+  else if (petitAuBout === "defense") primePetit = -10 * coef;
+
+  let primePoignee = 0;
+  if (poignee === "simple") primePoignee = 20;
+  if (poignee === "double") primePoignee = 30;
+  if (poignee === "triple") primePoignee = 40;
+  if (poignee === "double_camp") primePoignee = 40;
+
+  let ajustementPoignee = 0;
+  if (primePoignee !== 0) {
+    ajustementPoignee = reussite ? primePoignee : -primePoignee;
+  }
+
+  let primeChelem = 0;
+  if (chelem === "non_annonce_reussi") primeChelem = 200;
+  else if (chelem === "annonce_reussi") primeChelem = 400;
+  else if (chelem === "annonce_rate") primeChelem = -200;
+
+  const S = scoreContrat + primePetit + ajustementPoignee + primeChelem;
+
+  if (nbJoueurs === 5 && preneurId === indexMortActuel) {
+    alert("En 5 joueurs, le mort ne peut pas être preneur.\nChoisis un autre joueur preneur.");
+    return;
+  }
+
+  let roleScores = [];
+  if (nbJoueurs === 3) roleScores = [S * 2, -S, -S];
+  else if (nbJoueurs === 4) roleScores = [S * 3, -S, -S, -S];
+  else if (nbJoueurs === 5) roleScores = [S * 3, -S, -S, -S];
+
+  let joueursScores = new Array(nbJoueurs).fill(0);
+  joueursScores[preneurId - 1] = roleScores[0];
+
+  let roleIndex = 1;
+  for (let i = 0; i < nbJoueurs; i++) {
+    if (i === preneurId - 1) continue;
+    if (nbJoueurs === 5 && (i + 1) === indexMortActuel) continue;
+    joueursScores[i] = roleScores[roleIndex] || 0;
+    roleIndex++;
+  }
+
+  derniersScores = [0, 0, 0, 0, 0];
+  for (let i = 0; i < nbJoueurs; i++) {
+    derniersScores[i] = joueursScores[i];
+  }
+
+  let inner = "";
+  inner += `<div class="line"><span>Contrat</span><span>${reussite ? "<span class='success'>Réussi</span>" : "<span class='fail'>Chuté</span>"}</span></div>`;
+  inner += `<div class="line"><span>Écart au contrat</span><span>${diffBrut >= 0 ? "+" : ""}${diffBrut}</span></div>`;
+  inner += `<div class="line"><span>Score contrat</span><span>${scoreContrat > 0 ? "+" : ""}${scoreContrat}</span></div>`;
+  inner += `<div class="line"><span>Petit au bout</span><span>${primePetit > 0 ? "+" : ""}${primePetit}</span></div>`;
+  inner += `<div class="line"><span>Poignée</span><span>${ajustementPoignee > 0 ? "+" : ""}${ajustementPoignee}</span></div>`;
+  inner += `<div class="line"><span>Chelem</span><span>${primeChelem > 0 ? "+" : ""}${primeChelem}</span></div>`;
+  inner += `<div class="line"><span>Total attaque (S)</span><span>${S > 0 ? "+" : ""}${S}</span></div>`;
+
+  inner += `<div class="section-title">Scores de la donne</div>`;
+
+  for (let i = 0; i < nbJoueurs; i++) {
+    const score = derniersScores[i] || 0;
+    let label = getNom(i + 1);
+    if (i === preneurId - 1) label += " (Preneur)";
+    if (nbJoueurs === 5 && (i + 1) === indexMortActuel) label += " – mort";
+    inner += `<div class="line"><span>${label}</span><span>${score > 0 ? "+" : ""}${score}</span></div>`;
+  }
+
+  const html = `
+    <details>
+      <summary>Résultat de la donne (cliquer pour voir le détail)</summary>
+      <div class="result-content">
+        ${inner}
+      </div>
+    </details>
+  `;
+
+  document.getElementById('result').innerHTML = html;
+
+  validerDonneAuto();
+
+  document.getElementById('preneur').value = "";
+  document.getElementById('ecart').value = "";
+  setContrat(2, document.querySelector('.contract-btn[data-value="2"]'));
+  document.getElementById('petitAuBout').value = "";
+  document.getElementById('poignee').value = "";
+  document.getElementById('chelem').value = "";
+  initCompactFields();
+
+  if (window.innerWidth <= 600) {
+    showPanel('recap');
+  }
+}
+
+function validerDonneAuto() {
+  const nbJoueurs = Number(document.getElementById('nbJoueurs').value);
+
+  const donne = {
+    id: prochainIdDonne++,
+    nbJoueurs: nbJoueurs,
+    mort: (nbJoueurs === 5 ? indexMortActuel : 0),
+    scores: derniersScores.slice(0, nbJoueurs)
+  };
+  historiqueDonnes.push(donne);
+  sauvegarderHistorique();
+
+  if (nbJoueurs === 5) {
+    indexMortActuel++;
+    if (indexMortActuel > 5) indexMortActuel = 1;
+    mettreAJourMortSelect();
+    mettreAJourPreneur();
+  }
+
+  afficherTableauScores();
+}
+
+function renumeroterDonnes() {
+  for (let i = 0; i < historiqueDonnes.length; i++) {
+    historiqueDonnes[i].id = i + 1;
+  }
+  prochainIdDonne = historiqueDonnes.length + 1;
+}
+
+function supprimerDonne(id) {
+  historiqueDonnes = historiqueDonnes.filter(d => d.id !== id);
+  renumeroterDonnes();
+  sauvegarderHistorique();
+  afficherTableauScores();
+}
+
+function effacerTout() {
+  derniersScores = [0, 0, 0, 0, 0];
+  historiqueDonnes = [];
+  prochainIdDonne = 1;
+  indexMortActuel = 1;
+  document.getElementById('result').innerHTML = "";
+  document.getElementById('preneur').value = "";
+  document.getElementById('ecart').value = "";
+  document.getElementById('petitAuBout').value = "";
+  document.getElementById('poignee').value = "";
+  document.getElementById('chelem').value = "";
+  sauvegarderHistorique();
+  mettreAJourMortSelect();
+  afficherTableauScores();
+  mettreAJourPreneur();
+  initCompactFields();
+}
+
+function afficherTableauScores() {
+  const nbJoueurs = Number(document.getElementById('nbJoueurs').value);
+
+  let html = '<div class="section-title"></div>';
+  html += '<table>';
+  html += '<colgroup>';
+  html += '<col class="score-id-col">';
+  for (let i = 0; i < nbJoueurs; i++) {
+    html += '<col>';
+  }
+  html += '</colgroup>';
+
+  html += '<tr class="score-header"><th>#</th>';
+  for (let i = 0; i < nbJoueurs; i++) {
+    html += `<th>${getNom(i + 1)}</th>`;
+  }
+  html += '</tr>';
+
+  let totaux = new Array(nbJoueurs).fill(0);
+
+  for (const d of historiqueDonnes) {
+    html += `<tr>`;
+
+    html += `<td><span class="cell-id"><span>${d.id}</span><button type="button" class="btn-trash" title="Supprimer cette donne" onclick="supprimerDonne(${d.id})">🗑️</button></span></td>`;
+
+    for (let i = 0; i < nbJoueurs; i++) {
+      const val = d.scores[i] || 0;
+      totaux[i] += val;
+      const isMort = (d.nbJoueurs === 5 && d.mort === (i + 1));
+      const isNegative = val < 0;
+      let classes = [];
+      if (isMort) classes.push("mort-cell");
+      if (isNegative) classes.push("negative");
+      const clsAttr = classes.length ? ` class="${classes.join(" ")}"` : "";
+      html += `<td${clsAttr}>${val > 0 ? "+" : ""}${val}</td>`;
+    }
+
+    html += `</tr>`;
+  }
+
+  html += '<tr class="total-row"><th>Total</th>';
+  for (let i = 0; i < nbJoueurs; i++) {
+    const val = totaux[i];
+    const cls = val < 0 ? ' class="negative"' : '';
+    html += `<th${cls}>${val > 0 ? "+" : ""}${val}</th>`;
+  }
+  html += '</tr>';
+
+  html += '</table>';
+
+  if (historiqueDonnes.length === 0) {
+    html += '<div class="small">Aucune donne validée pour le moment.</div>';
+  }
+
+  document.getElementById('tableauScores').innerHTML = html;
+}
+
+document.getElementById('nouveauNom').addEventListener('keydown', function (event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    ajouterNom();
+  }
+});
+
+chargerListeNoms();
+chargerNomsJoueurs();
+if (!nomsJoueurs.some(n => n)) {
+  initialiserNomsParDefaut();
+}
+chargerHistorique();
+renderListeNoms();
+remplirSelectsJoueurs();
+mettreAJourPreneur();
+mettreAJourMortSelect();
+afficherTableauScores();
+remplirSelectEcart();
+initCompactFields();
+
+(function () {
+  const nb = Number(document.getElementById('nbJoueurs').value);
+  const detailsMort = document.getElementById('detailsMort');
+  if (detailsMort) {
+    detailsMort.style.display = (nb === 5) ? 'block' : 'none';
+  }
+})();
+
+if (window.innerWidth <= 600) {
+  showPanel('saisie');
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
