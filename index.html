@@ -583,18 +583,14 @@
         </select>
       </div>
 
-      <details class="nb-joueurs" id="detailsMort">
-        <summary class="collapse-summary">
-          <span class="collapse-summary-text">Mort (en 5 joueurs)</span>
-        </summary>
-        <div class="field compact mt-4">
-          <label for="mortSelect">Joueur mort</label>
-          <select id="mortSelect" onchange="changerMortManuel(this.value)"></select>
-        </div>
-        <div class="small">
-          Utilisé uniquement en 5 joueurs. Par défaut, le mort tourne automatiquement, mais tu peux corriger ici.
-        </div>
-      </details>
+      <div class="field compact" id="fieldMort">
+        <label for="mortSelect">Premier mort</label>
+        <select id="mortSelect" onchange="changerMortManuel(this.value)"></select>
+      </div>
+
+      <div class="small" id="hintMort">
+        Utilisé uniquement en 5 joueurs. Choisis le premier mort, puis la rotation continue automatiquement.
+      </div>
 
       <div class="field compact">
         <label for="preneur">Preneur</label>
@@ -744,6 +740,7 @@ let derniersScores = [0, 0, 0, 0, 0];
 let historiqueDonnes = [];
 let prochainIdDonne = 1;
 let indexMortActuel = 1; // 1..5
+let dernierModePartie = '4';
 
 const NOMS_STORAGE_KEY = 'scores_tarot_gino_noms';
 const HISTO_STORAGE_KEY = 'scores_tarot_gino_historique';
@@ -970,21 +967,28 @@ function setContrat(value, buttonEl) {
 }
 
 function appliquerChangementNbJoueurs() {
+  const mode = getModePartie();
   const nb = getNombreJoueurs();
-  const detailsMort = document.getElementById('detailsMort');
+  const fieldMort = document.getElementById('fieldMort');
+  const hintMort = document.getElementById('hintMort');
 
+  if (mode === '5' && dernierModePartie !== '5') {
+    indexMortActuel = 1;
+  }
   if (indexMortActuel > nb) indexMortActuel = 1;
   mettreAJourChampsJoueurs();
   mettreAJourPreneur();
   mettreAJourMortSelect();
   afficherTableauScores();
 
-  if (detailsMort) {
-    detailsMort.style.display = estModeCinqJoueurs() ? 'block' : 'none';
-    if (!estModeCinqJoueurs() && detailsMort.hasAttribute('open')) {
-      detailsMort.removeAttribute('open');
-    }
+  if (fieldMort) {
+    fieldMort.style.display = estModeCinqJoueurs() ? '' : 'none';
   }
+  if (hintMort) {
+    hintMort.style.display = estModeCinqJoueurs() ? '' : 'none';
+  }
+
+  dernierModePartie = mode;
 }
 
 function updateCompactFieldState(field) {
@@ -1242,11 +1246,6 @@ function changerMortManuel(val) {
   indexMortActuel = idx;
   mettreAJourPreneur();
   afficherTableauScores();
-
-  const mortDetails = document.getElementById('detailsMort');
-  if (mortDetails && mortDetails.hasAttribute('open')) {
-    mortDetails.removeAttribute('open');
-  }
 }
 
 function getNom(i) {
@@ -1545,9 +1544,13 @@ appliquerChangementNbJoueurs();
 
 (function () {
   const nb = getNombreJoueurs();
-  const detailsMort = document.getElementById('detailsMort');
-  if (detailsMort) {
-    detailsMort.style.display = estModeCinqJoueurs() ? 'block' : 'none';
+  const fieldMort = document.getElementById('fieldMort');
+  const hintMort = document.getElementById('hintMort');
+  if (fieldMort) {
+    fieldMort.style.display = estModeCinqJoueurs() ? '' : 'none';
+  }
+  if (hintMort) {
+    hintMort.style.display = estModeCinqJoueurs() ? '' : 'none';
   }
 })();
 
