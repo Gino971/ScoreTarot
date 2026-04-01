@@ -1,4 +1,4 @@
-const CACHE_NAME = 'scores-tarot-gino-v2';
+const CACHE_NAME = 'scores-tarot-gino-v3';
 const APP_ASSETS = [
   './',
   './index.html',
@@ -28,6 +28,31 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  const requestUrl = new URL(event.request.url);
+  const isSameOrigin = requestUrl.origin === self.location.origin;
+  const isNavigationRequest = event.request.mode === 'navigate';
+  const isAppShellRequest = isSameOrigin && (requestUrl.pathname.endsWith('/') || requestUrl.pathname.endsWith('/index.html'));
+
+  if (isNavigationRequest || isAppShellRequest) {
+    event.respondWith(
+      fetch(event.request)
+        .then(networkResponse => {
+          if (!networkResponse || networkResponse.status !== 200) {
+            return networkResponse;
+          }
+
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
+          return networkResponse;
+        })
+        .catch(async () => {
+          const cachedResponse = await caches.match(event.request);
+          return cachedResponse || caches.match('./index.html') || caches.match('./');
+        })
+    );
     return;
   }
 
