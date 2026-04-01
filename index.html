@@ -344,68 +344,6 @@
     margin-top: 6px;
   }
 
-  .diagnostic-box {
-    margin-top: 10px;
-    padding: 10px 12px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  .diagnostic-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 6px;
-  }
-
-  .diagnostic-title {
-    margin: 0;
-    font-size: 13px;
-    color: #e0e0ff;
-  }
-
-  .diagnostic-list {
-    display: grid;
-    gap: 4px;
-  }
-
-  .diagnostic-row {
-    display: grid;
-    grid-template-columns: 110px minmax(0, 1fr);
-    gap: 8px;
-    align-items: start;
-  }
-
-  .diagnostic-label {
-    color: #c0c8e0;
-  }
-
-  .diagnostic-value {
-    word-break: break-word;
-    color: #f5f5f5;
-  }
-
-  .transfert-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-  }
-
-  .transfert-zone {
-    width: 100%;
-    min-height: 110px;
-    margin-top: 8px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid #3a3a4f;
-    background: #12121b;
-    color: #f5f5f5;
-    font-size: 12px;
-    resize: vertical;
-  }
-
   table {
     border-collapse: collapse;
     font-size: 12px;
@@ -759,20 +697,6 @@
         <div class="players-list" id="listeNomsContainer">
           <!-- noms dynamiques -->
         </div>
-
-        <div class="diagnostic-box">
-          <div class="diagnostic-header">
-            <h3 class="diagnostic-title">Diagnostic</h3>
-            <button type="button" class="small-btn" onclick="rafraichirDiagnostic()">Actualiser</button>
-          </div>
-          <div class="small">Permet de vérifier sur l’iPhone quelle version de l’app et quelles données locales sont réellement chargées.</div>
-          <div id="diagnosticInfo" class="diagnostic-list small"></div>
-          <div class="transfert-actions">
-            <button type="button" class="small-btn" onclick="exporterListeNoms()">Copier les noms</button>
-            <button type="button" class="small-btn" onclick="importerListeNoms()">Importer les noms</button>
-          </div>
-          <textarea id="zoneTransfertNoms" class="transfert-zone" placeholder="Dans Safari, appuie sur 'Copier les noms'. Puis colle ici dans l’app installée et appuie sur 'Importer les noms'."></textarea>
-        </div>
       </div>
     </div>
   </div>
@@ -783,7 +707,6 @@
 </div>
 
 <script>
-const APP_VERSION = '2026-04-02-2';
 let derniersScores = [0, 0, 0, 0, 0];
 let historiqueDonnes = [];
 let prochainIdDonne = 1;
@@ -878,177 +801,6 @@ function quitterApp() {
 
 function trierNoms() {
   listeNoms.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
-}
-
-function echapperHtml(texte) {
-  return String(texte)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function lireStockageLocal(cle) {
-  try {
-    return localStorage.getItem(cle);
-  } catch (e) {
-    return null;
-  }
-}
-
-function resumerListeNomsDiagnostic() {
-  const brut = lireStockageLocal(NOMS_STORAGE_KEY);
-  if (!brut) return 'vide';
-
-  try {
-    const noms = JSON.parse(brut);
-    if (!Array.isArray(noms)) return 'format inattendu';
-    const apercu = noms.slice(0, 3).join(', ');
-    return `${noms.length} nom(s)${apercu ? ` - ${apercu}${noms.length > 3 ? '...' : ''}` : ''}`;
-  } catch (e) {
-    return 'illisible';
-  }
-}
-
-function resumerJoueursDiagnostic() {
-  const brut = lireStockageLocal(NOMS_JOUEURS_STORAGE_KEY);
-  if (!brut) return 'vide';
-
-  try {
-    const joueurs = JSON.parse(brut);
-    if (!Array.isArray(joueurs)) return 'format inattendu';
-    const utilises = joueurs.filter(nom => String(nom || '').trim() !== '');
-    return utilises.length > 0 ? utilises.join(', ') : 'aucun joueur sélectionné';
-  } catch (e) {
-    return 'illisible';
-  }
-}
-
-function resumerHistoriqueDiagnostic() {
-  const brut = lireStockageLocal(HISTO_STORAGE_KEY);
-  if (!brut) return 'vide';
-
-  try {
-    const donnes = JSON.parse(brut);
-    if (!Array.isArray(donnes)) return 'format inattendu';
-    return `${donnes.length} donne(s)`;
-  } catch (e) {
-    return 'illisible';
-  }
-}
-
-function normaliserListeNoms(valeur) {
-  if (Array.isArray(valeur)) {
-    return valeur
-      .map(nom => String(nom || '').trim())
-      .filter(Boolean);
-  }
-
-  const texte = String(valeur || '').trim();
-  if (!texte) return [];
-
-  try {
-    const json = JSON.parse(texte);
-    if (Array.isArray(json)) {
-      return json
-        .map(nom => String(nom || '').trim())
-        .filter(Boolean);
-    }
-  } catch (e) {}
-
-  return texte
-    .split(/\r?\n|;/)
-    .map(nom => nom.trim())
-    .filter(Boolean);
-}
-
-function dedupliquerNoms(noms) {
-  const uniques = [];
-  const vus = new Set();
-
-  noms.forEach(nom => {
-    const cle = nom.toLocaleLowerCase('fr');
-    if (vus.has(cle)) return;
-    vus.add(cle);
-    uniques.push(nom);
-  });
-
-  return uniques;
-}
-
-function exporterListeNoms() {
-  const zone = document.getElementById('zoneTransfertNoms');
-  if (!zone) return;
-
-  zone.value = JSON.stringify(listeNoms, null, 2);
-  zone.focus();
-  zone.select();
-
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(zone.value).catch(() => {});
-  }
-}
-
-function importerListeNoms() {
-  const zone = document.getElementById('zoneTransfertNoms');
-  if (!zone) return;
-
-  const nomsImportes = dedupliquerNoms(normaliserListeNoms(zone.value));
-  if (nomsImportes.length === 0) {
-    alert('Aucun nom valide à importer.');
-    return;
-  }
-
-  listeNoms = nomsImportes;
-  trierNoms();
-  sauvegarderListeNoms();
-  renderListeNoms();
-  remplirSelectsJoueurs();
-  zone.value = JSON.stringify(listeNoms, null, 2);
-  alert(`${listeNoms.length} nom(s) importé(s).`);
-}
-
-async function rafraichirDiagnostic() {
-  const cible = document.getElementById('diagnosticInfo');
-  if (!cible) return;
-
-  const enModeApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  let serviceWorkerInfo = 'non disponible';
-
-  if ('serviceWorker' in navigator) {
-    try {
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (registration) {
-        const worker = registration.active || registration.waiting || registration.installing;
-        const script = worker && worker.scriptURL ? worker.scriptURL : 'enregistré sans script actif';
-        serviceWorkerInfo = navigator.serviceWorker.controller
-          ? `${script} (contrôle actif)`
-          : `${script} (pas encore contrôlé)`;
-      } else {
-        serviceWorkerInfo = 'aucun service worker enregistré';
-      }
-    } catch (e) {
-      serviceWorkerInfo = 'lecture impossible';
-    }
-  }
-
-  const lignes = [
-    ['Version', APP_VERSION],
-    ['Mode', enModeApp ? 'app écran d’accueil' : 'Safari / onglet'],
-    ['URL', window.location.href],
-    ['Origine', window.location.origin],
-    ['Service worker', serviceWorkerInfo],
-    ['Noms stockés', resumerListeNomsDiagnostic()],
-    ['Joueurs stockés', resumerJoueursDiagnostic()],
-    ['Historique', resumerHistoriqueDiagnostic()],
-    ['Mort stocké', lireStockageLocal(MORT_STORAGE_KEY) || 'vide'],
-    ['Diagnostic', new Date().toLocaleString('fr-FR')]
-  ];
-
-  cible.innerHTML = lignes.map(([label, valeur]) => {
-    return `<div class="diagnostic-row"><div class="diagnostic-label">${echapperHtml(label)}</div><div class="diagnostic-value">${echapperHtml(valeur)}</div></div>`;
-  }).join('');
 }
 
 function showPanel(which) {
@@ -1149,7 +901,6 @@ function sauvegarderListeNoms() {
   try {
     localStorage.setItem(NOMS_STORAGE_KEY, JSON.stringify(listeNoms));
   } catch (e) {}
-  rafraichirDiagnostic();
 }
 
 function sauvegarderHistorique() {
@@ -1157,7 +908,6 @@ function sauvegarderHistorique() {
     localStorage.setItem(HISTO_STORAGE_KEY, JSON.stringify(historiqueDonnes));
     localStorage.setItem(MORT_STORAGE_KEY, String(indexMortActuel));
   } catch (e) {}
-  rafraichirDiagnostic();
 }
 
 function chargerHistorique() {
@@ -1187,7 +937,6 @@ function sauvegarderNomsJoueurs() {
   try {
     localStorage.setItem(NOMS_JOUEURS_STORAGE_KEY, JSON.stringify(nomsJoueurs));
   } catch (e) {}
-  rafraichirDiagnostic();
 }
 
 function chargerNomsJoueurs() {
@@ -1655,13 +1404,6 @@ mettreAJourMortSelect();
 afficherTableauScores();
 remplirSelectEcart();
 initCompactFields();
-rafraichirDiagnostic();
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    rafraichirDiagnostic();
-  }
-});
 
 (function () {
   const nb = Number(document.getElementById('nbJoueurs').value);
@@ -1677,11 +1419,7 @@ if (window.innerWidth <= 600) {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=5', { updateViaCache: 'none' }).then(() => {
-      rafraichirDiagnostic();
-    }).catch(() => {
-      rafraichirDiagnostic();
-    });
+    navigator.serviceWorker.register('./sw.js?v=6', { updateViaCache: 'none' }).catch(() => {});
   });
 }
 </script>
