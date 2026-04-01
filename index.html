@@ -387,6 +387,25 @@
     color: #f5f5f5;
   }
 
+  .transfert-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .transfert-zone {
+    width: 100%;
+    min-height: 110px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #3a3a4f;
+    background: #12121b;
+    color: #f5f5f5;
+    font-size: 12px;
+    resize: vertical;
+  }
+
   table {
     border-collapse: collapse;
     font-size: 12px;
@@ -748,6 +767,11 @@
           </div>
           <div class="small">Permet de vérifier sur l’iPhone quelle version de l’app et quelles données locales sont réellement chargées.</div>
           <div id="diagnosticInfo" class="diagnostic-list small"></div>
+          <div class="transfert-actions">
+            <button type="button" class="small-btn" onclick="exporterListeNoms()">Copier les noms</button>
+            <button type="button" class="small-btn" onclick="importerListeNoms()">Importer les noms</button>
+          </div>
+          <textarea id="zoneTransfertNoms" class="transfert-zone" placeholder="Dans Safari, appuie sur 'Copier les noms'. Puis colle ici dans l’app installée et appuie sur 'Importer les noms'."></textarea>
         </div>
       </div>
     </div>
@@ -759,7 +783,7 @@
 </div>
 
 <script>
-const APP_VERSION = '2026-04-02-1';
+const APP_VERSION = '2026-04-02-2';
 let derniersScores = [0, 0, 0, 0, 0];
 let historiqueDonnes = [];
 let prochainIdDonne = 1;
@@ -912,6 +936,77 @@ function resumerHistoriqueDiagnostic() {
   } catch (e) {
     return 'illisible';
   }
+}
+
+function normaliserListeNoms(valeur) {
+  if (Array.isArray(valeur)) {
+    return valeur
+      .map(nom => String(nom || '').trim())
+      .filter(Boolean);
+  }
+
+  const texte = String(valeur || '').trim();
+  if (!texte) return [];
+
+  try {
+    const json = JSON.parse(texte);
+    if (Array.isArray(json)) {
+      return json
+        .map(nom => String(nom || '').trim())
+        .filter(Boolean);
+    }
+  } catch (e) {}
+
+  return texte
+    .split(/\r?\n|;/)
+    .map(nom => nom.trim())
+    .filter(Boolean);
+}
+
+function dedupliquerNoms(noms) {
+  const uniques = [];
+  const vus = new Set();
+
+  noms.forEach(nom => {
+    const cle = nom.toLocaleLowerCase('fr');
+    if (vus.has(cle)) return;
+    vus.add(cle);
+    uniques.push(nom);
+  });
+
+  return uniques;
+}
+
+function exporterListeNoms() {
+  const zone = document.getElementById('zoneTransfertNoms');
+  if (!zone) return;
+
+  zone.value = JSON.stringify(listeNoms, null, 2);
+  zone.focus();
+  zone.select();
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(zone.value).catch(() => {});
+  }
+}
+
+function importerListeNoms() {
+  const zone = document.getElementById('zoneTransfertNoms');
+  if (!zone) return;
+
+  const nomsImportes = dedupliquerNoms(normaliserListeNoms(zone.value));
+  if (nomsImportes.length === 0) {
+    alert('Aucun nom valide à importer.');
+    return;
+  }
+
+  listeNoms = nomsImportes;
+  trierNoms();
+  sauvegarderListeNoms();
+  renderListeNoms();
+  remplirSelectsJoueurs();
+  zone.value = JSON.stringify(listeNoms, null, 2);
+  alert(`${listeNoms.length} nom(s) importé(s).`);
 }
 
 async function rafraichirDiagnostic() {
@@ -1582,7 +1677,7 @@ if (window.innerWidth <= 600) {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=4', { updateViaCache: 'none' }).then(() => {
+    navigator.serviceWorker.register('./sw.js?v=5', { updateViaCache: 'none' }).then(() => {
       rafraichirDiagnostic();
     }).catch(() => {
       rafraichirDiagnostic();
