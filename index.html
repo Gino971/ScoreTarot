@@ -540,7 +540,7 @@
     <button class="tab-btn active" id="tabSaisie" onclick="showPanel('saisie')">Saisie</button>
     <button class="tab-btn" id="tabRecap" onclick="showPanel('recap')">Feuille</button>
     <button class="tab-btn" id="tabJoueurs" onclick="showPanel('joueurs')">Joueurs</button>
-    <button class="tab-btn" id="tabNoms" onclick="showPanel('noms')">Noms</button>
+    <button class="tab-btn" id="tabNoms" onclick="showPanel('noms')">Liste</button>
   </div>
 
   <div class="panels">
@@ -647,61 +647,57 @@
       </div>
     </div>
 
-    <!-- Joueurs replié -->
+    <!-- Joueurs -->
     <div class="players-card" id="panelJoueurs">
-      <details>
-        <summary class="collapse-summary"><span class="collapse-summary-text">Joueurs de la partie</span></summary>
-        <div class="mt-8">
-          <div class="players-select-row">
-            <div class="field">
-              <label for="selectJ1">Joueur 1</label>
-              <select id="selectJ1" class="select-joueur" onchange="choisirJoueur(1, this.value)"></select>
-            </div>
-            <div class="field">
-              <label for="selectJ2">Joueur 2</label>
-              <select id="selectJ2" class="select-joueur" onchange="choisirJoueur(2, this.value)"></select>
-            </div>
+      <h2>Joueurs de la partie</h2>
+      <div class="mt-8">
+        <div class="players-select-row">
+          <div class="field">
+            <label for="selectJ1">Joueur 1</label>
+            <select id="selectJ1" class="select-joueur" onchange="choisirJoueur(1, this.value)"></select>
           </div>
-          <div class="players-select-row">
-            <div class="field">
-              <label for="selectJ3">Joueur 3</label>
-              <select id="selectJ3" class="select-joueur" onchange="choisirJoueur(3, this.value)"></select>
-            </div>
-            <div class="field">
-              <label for="selectJ4">Joueur 4</label>
-              <select id="selectJ4" class="select-joueur" onchange="choisirJoueur(4, this.value)"></select>
-            </div>
-          </div>
-          <div class="players-select-row">
-            <div class="field">
-              <label for="selectJ5">Joueur 5</label>
-              <select id="selectJ5" class="select-joueur" onchange="choisirJoueur(5, this.value)"></select>
-            </div>
+          <div class="field">
+            <label for="selectJ2">Joueur 2</label>
+            <select id="selectJ2" class="select-joueur" onchange="choisirJoueur(2, this.value)"></select>
           </div>
         </div>
-      </details>
+        <div class="players-select-row">
+          <div class="field">
+            <label for="selectJ3">Joueur 3</label>
+            <select id="selectJ3" class="select-joueur" onchange="choisirJoueur(3, this.value)"></select>
+          </div>
+          <div class="field">
+            <label for="selectJ4">Joueur 4</label>
+            <select id="selectJ4" class="select-joueur" onchange="choisirJoueur(4, this.value)"></select>
+          </div>
+        </div>
+        <div class="players-select-row">
+          <div class="field">
+            <label for="selectJ5">Joueur 5</label>
+            <select id="selectJ5" class="select-joueur" onchange="choisirJoueur(5, this.value)"></select>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Noms replié -->
+    <!-- Liste -->
     <div class="names-card" id="panelNoms">
-      <details>
-        <summary class="collapse-summary"><span class="collapse-summary-text">Noms disponibles</span></summary>
-        <div class="mt-8">
-          <div class="row">
-            <div class="field">
-              <input id="nouveauNom" type="text" placeholder="Nouveau nom" />
-            </div>
-            <div class="field flex-zero">
-              <label>&nbsp;</label>
-              <button type="button" class="small-btn" onclick="ajouterNom()">Ajouter</button>
-            </div>
+      <h2>Liste des noms</h2>
+      <div class="mt-8">
+        <div class="row">
+          <div class="field">
+            <input id="nouveauNom" type="text" placeholder="Nouveau nom" />
           </div>
-
-          <div class="players-list" id="listeNomsContainer">
-            <!-- noms dynamiques -->
+          <div class="field flex-zero">
+            <label>&nbsp;</label>
+            <button type="button" class="small-btn" onclick="ajouterNom()">Ajouter</button>
           </div>
         </div>
-      </details>
+
+        <div class="players-list" id="listeNomsContainer">
+          <!-- noms dynamiques -->
+        </div>
+      </div>
     </div>
   </div>
 
