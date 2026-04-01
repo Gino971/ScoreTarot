@@ -677,27 +677,27 @@
       <h2>Joueurs de la partie</h2>
       <div class="mt-8">
         <div class="players-select-row">
-          <div class="field">
+          <div class="field" id="fieldJ1">
             <label for="selectJ1">Joueur 1</label>
             <select id="selectJ1" class="select-joueur" onchange="choisirJoueur(1, this.value)"></select>
           </div>
-          <div class="field">
+          <div class="field" id="fieldJ2">
             <label for="selectJ2">Joueur 2</label>
             <select id="selectJ2" class="select-joueur" onchange="choisirJoueur(2, this.value)"></select>
           </div>
         </div>
         <div class="players-select-row">
-          <div class="field">
+          <div class="field" id="fieldJ3">
             <label for="selectJ3">Joueur 3</label>
             <select id="selectJ3" class="select-joueur" onchange="choisirJoueur(3, this.value)"></select>
           </div>
-          <div class="field">
+          <div class="field" id="fieldJ4">
             <label for="selectJ4">Joueur 4</label>
             <select id="selectJ4" class="select-joueur" onchange="choisirJoueur(4, this.value)"></select>
           </div>
         </div>
         <div class="players-select-row">
-          <div class="field">
+          <div class="field" id="fieldJ5">
             <label for="selectJ5">Joueur 5</label>
             <select id="selectJ5" class="select-joueur" onchange="choisirJoueur(5, this.value)"></select>
           </div>
@@ -838,6 +838,16 @@ function quitterApp() {
 
 function trierNoms() {
   listeNoms.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+}
+
+function mettreAJourChampsJoueurs() {
+  const nb = Number(document.getElementById('nbJoueurs').value);
+
+  for (let i = 1; i <= 5; i++) {
+    const champ = document.getElementById(`fieldJ${i}`);
+    if (!champ) continue;
+    champ.style.display = i <= nb ? '' : 'none';
+  }
 }
 
 function normaliserListeNoms(valeur) {
@@ -1250,6 +1260,7 @@ document.getElementById('nbJoueurs').addEventListener('change', () => {
   const detailsMort = document.getElementById('detailsMort');
 
   if (indexMortActuel > nb) indexMortActuel = 1;
+  mettreAJourChampsJoueurs();
   mettreAJourPreneur();
   mettreAJourMortSelect();
   afficherTableauScores();
@@ -1507,6 +1518,7 @@ if (!nomsJoueurs.some(n => n)) {
 chargerHistorique();
 renderListeNoms();
 remplirSelectsJoueurs();
+mettreAJourChampsJoueurs();
 mettreAJourPreneur();
 mettreAJourMortSelect();
 afficherTableauScores();
