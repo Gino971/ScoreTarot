@@ -344,6 +344,49 @@
     margin-top: 6px;
   }
 
+  .diagnostic-box {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .diagnostic-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .diagnostic-title {
+    margin: 0;
+    font-size: 13px;
+    color: #e0e0ff;
+  }
+
+  .diagnostic-list {
+    display: grid;
+    gap: 4px;
+  }
+
+  .diagnostic-row {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+  }
+
+  .diagnostic-label {
+    color: #c0c8e0;
+  }
+
+  .diagnostic-value {
+    word-break: break-word;
+    color: #f5f5f5;
+  }
+
   table {
     border-collapse: collapse;
     font-size: 12px;
@@ -697,6 +740,15 @@
         <div class="players-list" id="listeNomsContainer">
           <!-- noms dynamiques -->
         </div>
+
+        <div class="diagnostic-box">
+          <div class="diagnostic-header">
+            <h3 class="diagnostic-title">Diagnostic</h3>
+            <button type="button" class="small-btn" onclick="rafraichirDiagnostic()">Actualiser</button>
+          </div>
+          <div class="small">Permet de vérifier sur l’iPhone quelle version de l’app et quelles données locales sont réellement chargées.</div>
+          <div id="diagnosticInfo" class="diagnostic-list small"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -707,6 +759,7 @@
 </div>
 
 <script>
+const APP_VERSION = '2026-04-02-1';
 let derniersScores = [0, 0, 0, 0, 0];
 let historiqueDonnes = [];
 let prochainIdDonne = 1;
@@ -801,6 +854,106 @@ function quitterApp() {
 
 function trierNoms() {
   listeNoms.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+}
+
+function echapperHtml(texte) {
+  return String(texte)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function lireStockageLocal(cle) {
+  try {
+    return localStorage.getItem(cle);
+  } catch (e) {
+    return null;
+  }
+}
+
+function resumerListeNomsDiagnostic() {
+  const brut = lireStockageLocal(NOMS_STORAGE_KEY);
+  if (!brut) return 'vide';
+
+  try {
+    const noms = JSON.parse(brut);
+    if (!Array.isArray(noms)) return 'format inattendu';
+    const apercu = noms.slice(0, 3).join(', ');
+    return `${noms.length} nom(s)${apercu ? ` - ${apercu}${noms.length > 3 ? '...' : ''}` : ''}`;
+  } catch (e) {
+    return 'illisible';
+  }
+}
+
+function resumerJoueursDiagnostic() {
+  const brut = lireStockageLocal(NOMS_JOUEURS_STORAGE_KEY);
+  if (!brut) return 'vide';
+
+  try {
+    const joueurs = JSON.parse(brut);
+    if (!Array.isArray(joueurs)) return 'format inattendu';
+    const utilises = joueurs.filter(nom => String(nom || '').trim() !== '');
+    return utilises.length > 0 ? utilises.join(', ') : 'aucun joueur sélectionné';
+  } catch (e) {
+    return 'illisible';
+  }
+}
+
+function resumerHistoriqueDiagnostic() {
+  const brut = lireStockageLocal(HISTO_STORAGE_KEY);
+  if (!brut) return 'vide';
+
+  try {
+    const donnes = JSON.parse(brut);
+    if (!Array.isArray(donnes)) return 'format inattendu';
+    return `${donnes.length} donne(s)`;
+  } catch (e) {
+    return 'illisible';
+  }
+}
+
+async function rafraichirDiagnostic() {
+  const cible = document.getElementById('diagnosticInfo');
+  if (!cible) return;
+
+  const enModeApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  let serviceWorkerInfo = 'non disponible';
+
+  if ('serviceWorker' in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration) {
+        const worker = registration.active || registration.waiting || registration.installing;
+        const script = worker && worker.scriptURL ? worker.scriptURL : 'enregistré sans script actif';
+        serviceWorkerInfo = navigator.serviceWorker.controller
+          ? `${script} (contrôle actif)`
+          : `${script} (pas encore contrôlé)`;
+      } else {
+        serviceWorkerInfo = 'aucun service worker enregistré';
+      }
+    } catch (e) {
+      serviceWorkerInfo = 'lecture impossible';
+    }
+  }
+
+  const lignes = [
+    ['Version', APP_VERSION],
+    ['Mode', enModeApp ? 'app écran d’accueil' : 'Safari / onglet'],
+    ['URL', window.location.href],
+    ['Origine', window.location.origin],
+    ['Service worker', serviceWorkerInfo],
+    ['Noms stockés', resumerListeNomsDiagnostic()],
+    ['Joueurs stockés', resumerJoueursDiagnostic()],
+    ['Historique', resumerHistoriqueDiagnostic()],
+    ['Mort stocké', lireStockageLocal(MORT_STORAGE_KEY) || 'vide'],
+    ['Diagnostic', new Date().toLocaleString('fr-FR')]
+  ];
+
+  cible.innerHTML = lignes.map(([label, valeur]) => {
+    return `<div class="diagnostic-row"><div class="diagnostic-label">${echapperHtml(label)}</div><div class="diagnostic-value">${echapperHtml(valeur)}</div></div>`;
+  }).join('');
 }
 
 function showPanel(which) {
@@ -901,6 +1054,7 @@ function sauvegarderListeNoms() {
   try {
     localStorage.setItem(NOMS_STORAGE_KEY, JSON.stringify(listeNoms));
   } catch (e) {}
+  rafraichirDiagnostic();
 }
 
 function sauvegarderHistorique() {
@@ -908,6 +1062,7 @@ function sauvegarderHistorique() {
     localStorage.setItem(HISTO_STORAGE_KEY, JSON.stringify(historiqueDonnes));
     localStorage.setItem(MORT_STORAGE_KEY, String(indexMortActuel));
   } catch (e) {}
+  rafraichirDiagnostic();
 }
 
 function chargerHistorique() {
@@ -937,6 +1092,7 @@ function sauvegarderNomsJoueurs() {
   try {
     localStorage.setItem(NOMS_JOUEURS_STORAGE_KEY, JSON.stringify(nomsJoueurs));
   } catch (e) {}
+  rafraichirDiagnostic();
 }
 
 function chargerNomsJoueurs() {
@@ -1404,6 +1560,13 @@ mettreAJourMortSelect();
 afficherTableauScores();
 remplirSelectEcart();
 initCompactFields();
+rafraichirDiagnostic();
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    rafraichirDiagnostic();
+  }
+});
 
 (function () {
   const nb = Number(document.getElementById('nbJoueurs').value);
@@ -1419,7 +1582,11 @@ if (window.innerWidth <= 600) {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=3', { updateViaCache: 'none' }).catch(() => {});
+    navigator.serviceWorker.register('./sw.js?v=4', { updateViaCache: 'none' }).then(() => {
+      rafraichirDiagnostic();
+    }).catch(() => {
+      rafraichirDiagnostic();
+    });
   });
 }
 </script>
