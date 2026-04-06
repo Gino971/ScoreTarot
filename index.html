@@ -125,8 +125,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    min-width: 56px;
+    height: 36px;
+    padding: 6px 8px;
     border-radius: 6px;
     background: #252538;
     color: #e0e0ff;
@@ -134,6 +135,12 @@
     margin-right: 8px;
     flex: 0 0 auto;
     font-size: 13px;
+  }
+
+  /* make the nbJoueurs control compact */
+  .inline-small {
+    flex: 0 0 110px;
+    max-width: 110px;
   }
 
   label {
@@ -211,8 +218,15 @@
 
   .tab-btn.active {
     color: #ffffff;
-    box-shadow: 0 8px 20px rgba(59,130,246,0.25);
+    background: linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%);
+    box-shadow: 0 8px 20px rgba(59,130,246,0.28);
     transform: translateY(-1px);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .tab-btn:not(.active) {
+    opacity: 0.9;
+    filter: brightness(0.92);
   }
 
   .tab-btn, .top-right .small-btn {
@@ -706,7 +720,7 @@
           </select>
         </div>
         <div class="field compact inline-small" style="display:flex;align-items:center;">
-          <span class="left-marker" aria-hidden="true">D</span>
+          <span class="left-marker" aria-hidden="true">Donneur</span>
           <label for="donneurSelect" class="left-label">Donneur</label>
           <select id="donneurSelect" onchange="changerDonneurManuel(this.value)"></select>
         </div>
