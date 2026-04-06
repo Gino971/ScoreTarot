@@ -54,6 +54,25 @@
     min-height: 50px;
   }
 
+  /* Améliorer la visibilité des flèches des selects */
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 44px;
+  }
+
+  /* Forcer une flèche claire aussi pour les champs compact */
+  .field.compact select {
+    padding-right: 44px;
+    padding-top: 18px;
+    padding-bottom: 10px;
+  }
+
   .card {
     background: rgba(15, 15, 25, 0.95);
     padding: 18px 22px 22px;
