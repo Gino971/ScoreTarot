@@ -148,6 +148,13 @@
     min-height: 50px;
   }
 
+  /* Narrow the first-player dropdown to avoid it stretching full width */
+  #selectFirstPlayer {
+    width: 220px;
+    max-width: 60%;
+    min-width: 140px;
+  }
+
   .field.compact input,
   .field.compact select {
     padding-top: 18px;
@@ -668,6 +675,16 @@
     <div class="players-card" id="panelJoueurs">
       <h2>Joueurs de la partie</h2>
       <div class="mt-8">
+        <div class="row" style="align-items:center;gap:8px;margin-top:6px;margin-bottom:6px;">
+          <div class="field">
+            <label for="selectFirstPlayer">Premier joueur</label>
+            <select id="selectFirstPlayer" onchange="choisirJoueur(1, this.value)"></select>
+          </div>
+          <div class="field flex-zero">
+            <label>&nbsp;</label>
+            <button type="button" class="small-btn" title="Réinitialiser les autres joueurs" onclick="resetPlayersExceptFirst()">🔄</button>
+          </div>
+        </div>
         <div class="players-select-row">
           <div class="field" id="fieldJ1">
             <label for="selectJ1">Joueur 1</label>
@@ -1167,6 +1184,39 @@ function remplirSelectsJoueurs() {
     sel.value = valeurCourante || "";
   });
 
+  remplirFirstPlayerDropdown();
+  mettreAJourPreneur();
+  mettreAJourMortSelect();
+  afficherTableauScores();
+}
+
+function remplirFirstPlayerDropdown() {
+  const el = document.getElementById('selectFirstPlayer');
+  if (!el) return;
+  el.innerHTML = "";
+  const optVide = document.createElement('option');
+  optVide.value = "";
+  optVide.textContent = "(aucun)";
+  el.appendChild(optVide);
+
+  trierNoms();
+  listeNoms.forEach(n => {
+    const opt = document.createElement('option');
+    opt.value = n;
+    opt.textContent = n;
+    el.appendChild(opt);
+  });
+
+  el.value = nomsJoueurs[0] || "";
+  updateCompactFieldState(el.closest('.field'));
+}
+
+function resetPlayersExceptFirst() {
+  for (let i = 1; i < 5; i++) {
+    nomsJoueurs[i] = "";
+  }
+  sauvegarderNomsJoueurs();
+  remplirSelectsJoueurs();
   mettreAJourPreneur();
   mettreAJourMortSelect();
   afficherTableauScores();
