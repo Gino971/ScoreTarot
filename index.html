@@ -35,39 +35,15 @@
     flex-direction: column;
   }
 
-  .tabs {
-    display: none;
-    margin-bottom: 8px;
-  }
-
-  .tab-btn {
-    padding: 8px 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,0.25);
-    background: rgba(10,10,20,0.9);
-    color: #e0e0ff;
-    font-size: 13px;
-    cursor: pointer;
-    margin-right: 6px;
-  }
-
-  .tab-btn.active {
-    background: linear-gradient(135deg, #7c5cff, #ff6fb1);
-    border-color: transparent;
-    color: white;
-  }
-
-  .panels {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .card, .scores-card, .players-card, .names-card {
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+  input, select {
+    width: 100%;
+    padding: 12px 12px;
+    border-radius: 8px;
+    border: 1px solid #3a3a4f;
+    background: #161621;
+    color: #f5f5f5;
+    font-size: 15px;
+    min-height: 50px;
   }
 
   .card {
@@ -137,41 +113,7 @@
     border: 0;
   }
 
-  input, select {
-    width: 100%;
-      padding: 14px 14px;
-      font-size: 16px;
-      min-height: 64px;
-  }
-
-  /* Narrow the first-player dropdown to avoid it stretching full width */
-  /* inline small fields for top row */
-  .field.inline-small {
-    max-width: 240px;
-    flex: 0 0 auto;
-  }
-  .field.inline-small select {
-    width: 160px;
-  }
-  .left-label {
-    display: inline-block;
-    width: 34px;
-    font-size: 12px;
-    color: #d2d2e0;
-    margin-right: 6px;
-    text-align: left;
-  }
-  /* override visually-hidden compact labels for inline-small fields */
-  .field.compact.inline-small label {
-    position: static;
-    width: auto;
-    height: auto;
-    padding: 0;
-    margin: 0 6px 0 0;
-    overflow: visible;
-    clip: auto;
-    white-space: nowrap;
-  }
+  
 
   .field.compact input,
   .field.compact select {
@@ -226,10 +168,16 @@
   }
 
   button {
-      padding: 14px 18px;
-      font-size: 18px;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
-      min-height: 64px;
+    padding: 12px 14px;
+    border-radius: 999px;
+    border: none;
+    background: linear-gradient(135deg, #7c5cff, #ff6fb1);
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+    min-height: 50px;
   }
 
   button.secondary {
