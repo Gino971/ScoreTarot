@@ -194,7 +194,7 @@
 
   .tab-btn {
     padding: 6px;
-    background: transparent;
+    background: linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);
     border: none;
     color: #d2d2e0;
     cursor: pointer;
@@ -211,6 +211,12 @@
 
   .tab-btn.active {
     color: #ffffff;
+    box-shadow: 0 8px 20px rgba(59,130,246,0.25);
+    transform: translateY(-1px);
+  }
+
+  .tab-btn, .top-right .small-btn {
+    color: #fff; /* ensure SVGs using currentColor are white */
   }
 
   /* Assurer mêmes dimensions pour le bouton Quitter (top-right) */
@@ -224,7 +230,7 @@
     min-width: 44px;
     min-height: 44px;
     border-radius: 10px;
-    background: transparent;
+    background: linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);
     border: none;
     box-sizing: border-box;
   }
