@@ -685,6 +685,12 @@
             <button type="button" class="small-btn" title="Réinitialiser les autres joueurs" onclick="resetPlayersExceptFirst()">🔄</button>
           </div>
         </div>
+        <div class="row" style="align-items:center;gap:8px;margin-bottom:6px;">
+          <div class="field" style="max-width:220px;">
+            <label for="donneurSelect">Donneur</label>
+            <select id="donneurSelect" onchange="changerDonneurManuel(this.value)"></select>
+          </div>
+        </div>
         <div class="players-select-row">
           <div class="field" id="fieldJ1">
             <label for="selectJ1">Joueur 1</label>
@@ -762,9 +768,11 @@ let dernierModePartie = '4';
 const NOMS_STORAGE_KEY = 'scores_tarot_gino_noms';
 const HISTO_STORAGE_KEY = 'scores_tarot_gino_historique';
 const MORT_STORAGE_KEY  = 'scores_tarot_gino_mort';
+const DONNEUR_STORAGE_KEY = 'scores_tarot_gino_donneur';
 const NOMS_JOUEURS_STORAGE_KEY = 'scores_tarot_gino_noms_joueurs';
 let listeNoms = [];
 let nomsJoueurs = ["", "", "", "", ""];
+let indexDonneur = 1; // 1..5
 
 function remplirSelectEcart() {
   const select = document.getElementById('ecart');
@@ -1078,6 +1086,7 @@ function sauvegarderHistorique() {
   try {
     localStorage.setItem(HISTO_STORAGE_KEY, JSON.stringify(historiqueDonnes));
     localStorage.setItem(MORT_STORAGE_KEY, String(indexMortActuel));
+    try { localStorage.setItem(DONNEUR_STORAGE_KEY, String(indexDonneur)); } catch (e) {}
   } catch (e) {}
 }
 
@@ -1099,6 +1108,13 @@ function chargerHistorique() {
       const m = Number(mortStr);
       if (!isNaN(m) && m >= 1 && m <= 5) {
         indexMortActuel = m;
+      }
+    }
+    const donneurStr = localStorage.getItem(DONNEUR_STORAGE_KEY);
+    if (donneurStr) {
+      const d = Number(donneurStr);
+      if (!isNaN(d) && d >= 1 && d <= 5) {
+        indexDonneur = d;
       }
     }
   } catch (e) {}
@@ -1209,6 +1225,30 @@ function remplirFirstPlayerDropdown() {
 
   el.value = nomsJoueurs[0] || "";
   updateCompactFieldState(el.closest('.field'));
+}
+
+function mettreAJourDonneurSelect() {
+  const el = document.getElementById('donneurSelect');
+  if (!el) return;
+  el.innerHTML = "";
+  const nb = getNombreJoueurs();
+  for (let i = 1; i <= nb; i++) {
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = getNom(i);
+    el.appendChild(opt);
+  }
+  el.value = String(indexDonneur > 0 ? indexDonneur : 1);
+  updateCompactFieldState(el.closest('.field'));
+}
+
+function changerDonneurManuel(val) {
+  let idx = Number(val || 1);
+  const nb = getNombreJoueurs();
+  if (isNaN(idx) || idx < 1 || idx > nb) idx = 1;
+  indexDonneur = idx;
+  mettreAJourDonneurSelect();
+  sauvegarderHistorique();
 }
 
 function resetPlayersExceptFirst() {
@@ -1477,6 +1517,13 @@ function validerDonneAuto() {
     mettreAJourPreneur();
   }
 
+  // faire tourner le donneur après chaque donne validée
+  indexDonneur++;
+  const nb = getNombreJoueurs();
+  if (indexDonneur > nb) indexDonneur = 1;
+  mettreAJourDonneurSelect();
+  sauvegarderHistorique();
+
   afficherTableauScores();
 }
 
@@ -1586,6 +1633,7 @@ renderListeNoms();
 remplirSelectsJoueurs();
 mettreAJourChampsJoueurs();
 mettreAJourPreneur();
+mettreAJourDonneurSelect();
 mettreAJourMortSelect();
 afficherTableauScores();
 remplirSelectEcart();
