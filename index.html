@@ -17,6 +17,7 @@
 
   body {
     margin: 0;
+    position: relative;
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -24,6 +25,13 @@
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     background: radial-gradient(circle at top, #2e3350, #181824 60%, #0b0b12);
     color: #f5f5f5;
+  }
+
+  .top-right {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 1000;
   }
 
   .layout {
@@ -523,6 +531,10 @@
 <body>
 <div class="layout">
 
+    <div class="top-right">
+      <button type="button" class="small-btn" title="Quitter l'app" aria-label="Quitter" onclick="quitterApp()">✖</button>
+    </div>
+
   <div class="tabs">
     <button class="tab-btn active" id="tabSaisie" onclick="showPanel('saisie')">Saisie</button>
     <button class="tab-btn" id="tabRecap" onclick="showPanel('recap')">Scores</button>
@@ -702,9 +714,7 @@
     </div>
   </div>
 
-  <div class="quit-bar">
-    <button type="button" class="secondary" onclick="quitterApp()">Quitter l’app</button>
-  </div>
+  <!-- Bouton Quitter déplacé en haut à droite -->
 </div>
 
 <script>
@@ -1511,6 +1521,7 @@ function supprimerDonne(id) {
 }
 
 function effacerTout() {
+  if (!confirm("Confirmer la suppression de toutes les données ? Cette action est irréversible.")) return;
   derniersScores = [0, 0, 0, 0, 0];
   historiqueDonnes = [];
   prochainIdDonne = 1;
