@@ -526,6 +526,41 @@
       width: 360px;
     }
   }
+
+  /* Agrandir les contrôles pour très petits écrans (ex: iPhone 12 mini) */
+  @media (max-width: 420px) {
+    input, select {
+      padding: 16px 14px;
+      font-size: 18px;
+      min-height: 64px;
+    }
+
+    .contract-btn {
+      padding: 16px 12px;
+      font-size: 20px;
+      min-height: 72px;
+    }
+
+    button {
+      padding: 14px 16px;
+      font-size: 18px;
+      min-height: 60px;
+    }
+
+    .card, .players-card, .scores-card, .names-card {
+      width: 100%;
+      padding: 18px;
+    }
+
+    .contract-buttons {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .buttons {
+      flex-direction: column;
+    }
+  }
 </style>
 </head>
 <body>
