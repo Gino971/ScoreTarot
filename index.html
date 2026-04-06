@@ -138,8 +138,16 @@
 
   /* make the nbJoueurs control compact */
   .inline-small {
-    flex: 0 0 100px;
-    max-width: 100px;
+    /* just wide enough for labels like "3j (X3)" */
+    flex: 0 0 96px;
+    max-width: 96px;
+    min-width: 72px;
+  }
+
+  /* donneur field should expand to fill remaining space */
+  .donneur-field {
+    flex: 1 1 0%;
+    min-width: 0;
   }
 
   .field.preneur {
@@ -731,7 +739,7 @@
             <option value="5">5j</option>
           </select>
         </div>
-        <div class="field compact inline-small" style="display:flex;align-items:center;">
+        <div class="field compact donneur-field" style="display:flex;align-items:center;">
           <span class="left-marker" aria-hidden="true">D</span>
           <label for="donneurSelect" class="left-label">Donneur</label>
           <select id="donneurSelect" onchange="changerDonneurManuel(this.value)"></select>
