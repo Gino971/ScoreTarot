@@ -203,11 +203,30 @@
     justify-content: center;
     min-width: 44px;
     min-height: 44px;
+    height: 44px;
+    width: 44px;
     border-radius: 10px;
+    box-sizing: border-box;
   }
 
   .tab-btn.active {
     color: #ffffff;
+  }
+
+  /* Assurer mêmes dimensions pour le bouton Quitter (top-right) */
+  .top-right .small-btn {
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 10px;
+    background: transparent;
+    border: none;
+    box-sizing: border-box;
   }
 
   .contract-buttons {
