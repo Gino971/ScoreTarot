@@ -157,6 +157,14 @@
   .field.inline-small select {
     width: 160px;
   }
+  .left-label {
+    display: inline-block;
+    width: 34px;
+    font-size: 12px;
+    color: #d2d2e0;
+    margin-right: 6px;
+    text-align: left;
+  }
 
   .field.compact input,
   .field.compact select {
@@ -593,8 +601,8 @@
             <option value="5">5 joueurs (avec mort)</option>
           </select>
         </div>
-        <div class="field compact inline-small">
-          <label for="donneurSelect">Donneur</label>
+        <div class="field compact inline-small" style="display:flex;align-items:center;">
+          <label for="donneurSelect" class="left-label">D.</label>
           <select id="donneurSelect" onchange="changerDonneurManuel(this.value)"></select>
         </div>
       </div>
