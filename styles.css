@@ -1,0 +1,627 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #2e3350, #181824 60%, #0b0b12);
+  color: #f5f5f5;
+}
+
+.top-right {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+}
+
+.layout {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  max-width: 960px;
+  padding: 16px;
+  flex-direction: column;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 8px;
+  border: 1px solid #3a3a4f;
+  background: #161621;
+  color: #f5f5f5;
+  font-size: 15px;
+  min-height: 50px;
+}
+
+/* Améliorer la visibilité des flèches des selects */
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 44px;
+}
+
+/* Forcer une flèche claire aussi pour les champs compact */
+.field.compact select {
+  padding-right: 44px;
+  padding-top: 18px;
+  padding-bottom: 10px;
+}
+
+.card {
+  background: rgba(15, 15, 25, 0.95);
+  padding: 18px 22px 22px;
+  width: 440px;
+  max-width: 100%;
+}
+
+.scores-card {
+  background: rgba(10, 10, 18, 0.95);
+  padding: 16px 20px 20px;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 16px;
+  border: 4px solid rgba(255, 255, 255, 0.35);
+}
+
+.players-card, .names-card {
+  background: rgba(15, 15, 25, 0.95);
+  padding: 16px 20px 20px;
+  width: 440px;
+  max-width: 100%;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  text-align: center;
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+.row.align-center {
+  align-items: center;
+}
+
+.field {
+  margin-bottom: 8px;
+  flex: 1;
+}
+
+.field.compact {
+  position: relative;
+}
+
+.items-center { display:flex; align-items:center; }
+
+.left-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: #252538;
+  color: #e0e0ff;
+  font-weight: 700;
+  margin-right: 8px;
+  flex: 0 0 auto;
+  font-size: 13px;
+}
+
+/* make the nbJoueurs control compact */
+.inline-small {
+  /* slightly wider for better readability of labels like "3j (X3)" */
+  flex: 0 0 112px;
+  max-width: 112px;
+  min-width: 88px;
+}
+
+/* donneur field should expand to fill remaining space */
+.donneur-field {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.field.preneur {
+  flex: 0 0 180px;
+  max-width: 180px;
+}
+
+/* Agrandir les selects des joueurs */
+.players-card .field select,
+.players-card .field .select-joueur {
+  padding: 14px 12px;
+  font-size: 17px;
+  min-height: 60px;
+}
+
+label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 1px;
+  color: #d2d2e0;
+}
+
+.field.compact label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.field.compact input,
+.field.compact select {
+  padding-top: 18px;
+  padding-bottom: 10px;
+  color: rgba(210, 210, 224, 0.78);
+}
+
+.field.compact.has-value input,
+.field.compact.has-value select {
+  color: #f5f5f5;
+}
+
+.field.compact input::placeholder {
+  color: rgba(210, 210, 224, 0.58);
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #7c5cff;
+  box-shadow: 0 0 0 1px rgba(124, 92, 255, 0.4);
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* SVG icons for tabs and quit button */
+.tab-btn svg, .top-right .small-btn svg {
+    width: 24px;
+    height: 24px;
+    display: block;
+}
+
+.tab-btn {
+  padding: 6px;
+  background: linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);
+  border: none;
+  color: #d2d2e0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  height: 44px;
+  width: 44px;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.tab-btn.active {
+  color: #ffffff;
+  background: linear-gradient(135deg,#60a5fa 0%,#3b82f6 100%);
+  box-shadow: 0 8px 20px rgba(59,130,246,0.28);
+  transform: translateY(-1px);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.tab-btn:not(.active) {
+  opacity: 0.9;
+  filter: brightness(0.92);
+}
+
+.tab-btn, .top-right .small-btn {
+  color: #fff; /* ensure SVGs using currentColor are white */
+}
+
+/* Assurer mêmes dimensions pour le bouton Quitter (top-right) */
+.top-right .small-btn {
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);
+  border: none;
+  box-sizing: border-box;
+}
+
+.contract-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.contract-btn {
+  padding: 12px 10px;
+  border-radius: 8px;
+  border: 1px solid #3a3a4f;
+  background: #161621;
+  color: #f5f5f5;
+  font-size: 18px;
+  font-weight: 600;
+  min-height: 56px;
+  box-shadow: none;
+}
+
+.contract-btn.active {
+  background: linear-gradient(135deg, #7c5cff, #ff6fb1);
+  border-color: transparent;
+}
+
+button {
+  padding: 12px 14px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #7c5cff, #ff6fb1);
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+  min-height: 50px;
+}
+
+button.secondary {
+  background: #252538;
+  box-shadow: none;
+}
+
+button.small-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 999px;
+  background: #3a3a50;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.btn-trash {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  min-height: 0;
+  border-radius: 0;
+  font-size: 12px;
+  background: transparent;
+  border: none;
+  flex: 0 0 auto;
+}
+
+.btn-trash:hover {
+  filter: none;
+}
+
+.cell-id {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.cell-id .btn-trash {
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+}
+
+button:hover {
+  filter: brightness(1.05);
+}
+
+#result {
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+#result details {
+  padding: 14px 12px;
+  font-size: 20px;
+  min-height: 72px;
+  list-style: none;
+  font-size: 12px;
+  color: #d2d2e0;
+}
+
+#result summary::-webkit-details-marker {
+  display: none;
+}
+
+#result summary::before {
+  content: "▶ ";
+  font-size: 10px;
+}
+
+#result details[open] summary::before {
+  content: "▼ ";
+}
+
+.result-content {
+  margin-top: 4px;
+}
+
+.line {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.line span:first-child {
+  color: #c0c8e0;
+}
+
+.line span:last-child {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.hint {
+  margin-top: 4px;
+  font-size: 10px;
+  color: #9c9cc0;
+}
+
+.success {
+  color: #4ade80;
+}
+
+.fail {
+  color: #fb7185;
+}
+
+.section-title {
+  margin-top: 6px;
+  margin-bottom: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e0e0ff;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding-bottom: 1px;
+}
+
+.small {
+  font-size: 11px;
+  color: #a0a0c0;
+  margin-top: 6px;
+}
+
+.backup-box {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.backup-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.backup-zone {
+  width: 100%;
+  min-height: 110px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #3a3a4f;
+  background: #12121b;
+  color: #f5f5f5;
+  font-size: 12px;
+  resize: vertical;
+}
+
+table {
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+#tableauScores table {
+  width: 100%;
+  table-layout: fixed;
+  margin: 0 auto;
+  border: 2px solid rgba(255,255,255,0.4);
+}
+
+#tableauScores col.score-id-col {
+  width: 48px;
+}
+
+th, td {
+  padding: 4px 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.16);
+  text-align: center;
+  white-space: nowrap;
+  line-height: 3;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+th:not(:first-child),
+td:not(:first-child) {
+  border-left: 1px solid rgba(255,255,255,0.14);
+}
+
+th {
+  color: #d0d0f0;
+  background: rgba(255,255,255,0.06);
+}
+
+#tableauScores tr.score-header th {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  word-break: break-word;
+}
+
+#tableauScores tr.score-header th:first-child {
+  white-space: nowrap;
+}
+
+#tableauScores tr.score-header th:not(:first-child) {
+  height: 2.6em;
+}
+
+tr:nth-child(even) td {
+  background: rgba(255,255,255,0.02);
+}
+
+tr:nth-child(odd) td {
+  background: transparent;
+}
+
+tr.total-row th {
+  border-top: 2px solid rgba(255,255,255,0.35);
+  border-bottom: 2px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.08);
+  font-size: 14px;
+}
+
+.mort-cell {
+  color: #555;
+}
+
+.negative {
+  color: #fb7185;
+}
+
+.players-select-row {
+  margin-top: 6px;
+}
+
+.players-list {
+  margin-top: 4px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 12px;
+}
+
+.players-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+  gap: 4px;
+}
+
+.players-list-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collapse-summary {
+  font-size: 11px;
+  color: #c0c8e0;
+  cursor: pointer;
+}
+
+.collapse-summary-text {
+  text-decoration: underline;
+}
+
+details.nb-joueurs {
+  margin: 4px 0 6px;
+}
+
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.flex-zero { flex: 0; }
+
+.quit-bar {
+  margin-top: 8px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+
+@media (max-width: 600px) {
+  body {
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+  .layout {
+    max-width: 100%;
+    padding: 10px;
+  }
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .panels {
+    flex-direction: column;
+  }
+  .card, .scores-card, .players-card, .names-card {
+    width: 100%;
+  }
+  .card, .scores-card, .players-card, .names-card {
+    display: none;
+  }
+  .card.active-panel,
+  .scores-card.active-panel,
+  .players-card.active-panel,
+  .names-card.active-panel {
+    display: block;
+  }
+  .row { flex-direction: row; }
+  .buttons { flex-direction: column; }
+  .field { margin-bottom: 6px; }
+}
+
+@media (min-width: 601px) {
+  .tabs { display: none; }
+  .card, .scores-card, .players-card, .names-card { display: block; }
+  .scores-card, .names-card { width: 360px; }
+}
+
+/* Agrandir les contrôles pour très petits écrans (ex: iPhone 12 mini) */
+@media (max-width: 420px) {
+  input, select { padding: 16px 14px; font-size: 18px; min-height: 64px; }
+  .contract-btn { padding: 16px 12px; font-size: 20px; min-height: 72px; }
+  button { padding: 14px 16px; font-size: 18px; min-height: 60px; }
+  .card, .players-card, .scores-card, .names-card { width: 100%; padding: 18px; }
+  .contract-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .buttons { flex-direction: column; }
+}
