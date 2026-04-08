@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>scores tarot Gino</title>
-<meta name="theme-color" content="#181824" />
+<!-- theme-color handled via media queries further below; some browsers (Firefox) ignore it -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Score Tarot" />
@@ -17,7 +17,7 @@
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#181824" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="msapplication-TileColor" content="#181824" />
-<meta name="msapplication-TileImage" content="./Excuse.png" />
+<meta name="msapplication-TileImage" content="./icon-192.png" />
 </head>
 <body>
 <div class="layout">
@@ -1160,7 +1160,7 @@ if (window.innerWidth <= 600) {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=8', { updateViaCache: 'none' }).catch(() => {});
+    navigator.serviceWorker.register('./sw.js?v=10', { updateViaCache: 'none' }).catch(() => {});
   });
 }
 </script>

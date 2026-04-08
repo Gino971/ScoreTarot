@@ -1,9 +1,11 @@
-const CACHE_NAME = 'scores-tarot-gino-v9';
+const CACHE_NAME = 'scores-tarot-gino-v10';
 const APP_ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './icon.svg'
+  './styles.css',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', event => {
