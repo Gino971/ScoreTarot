@@ -1,11 +1,17 @@
 const CACHE_NAME = 'scores-tarot-gino-v10';
 const APP_ASSETS = [
   './',
+  '/',
   './index.html',
+  '/index.html',
   './manifest.webmanifest',
+  '/manifest.webmanifest',
   './styles.css',
+  '/styles.css',
   './icon-192.png',
-  './icon-512.png'
+  '/icon-192.png',
+  './icon-512.png',
+  '/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
@@ -52,7 +58,11 @@ self.addEventListener('fetch', event => {
         })
         .catch(async () => {
           const cachedResponse = await caches.match(event.request);
-          return cachedResponse || caches.match('./index.html') || caches.match('./');
+          return cachedResponse
+            || await caches.match('/index.html')
+            || await caches.match('./index.html')
+            || await caches.match('/')
+            || await caches.match('./');
         })
     );
     return;
@@ -74,7 +84,8 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
           return networkResponse;
         })
-        .catch(() => caches.match('./index.html'));
+        .catch(() => caches.match(event.request).then(r => r)
+          .then(r => r || caches.match('/index.html') || caches.match('./index.html')));
     })
   );
 });

@@ -1156,8 +1156,17 @@ if (window.innerWidth <= 600) {
 }
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=10', { updateViaCache: 'none' }).catch(() => {});
+  window.addEventListener('load', async () => {
+    // Tentative robuste d'enregistrement : premièrement avec options, puis sans options
+    try {
+      await navigator.serviceWorker.register('./sw.js?v=10', { updateViaCache: 'none' });
+    } catch (e) {
+      try {
+        await navigator.serviceWorker.register('./sw.js?v=10');
+      } catch (e2) {
+        console.warn('ServiceWorker registration failed:', e2);
+      }
+    }
   });
 }
 </script>
