@@ -110,21 +110,53 @@ h2 {
   position: relative;
 }
 
+
 .items-center { display:flex; align-items:center; }
 
-.left-marker {
+.donneur-field {
+  gap: 8px;
+}
+
+.donneur-next-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: #252538;
-  color: #e0e0ff;
+  gap: 7px;
+  width: 68px;
+  min-width: 68px;
+  height: 50px;
+  min-height: 50px;
+  padding: 0 10px;
+  border-radius: 14px;
+  border: 1px solid #3a3a52;
+  background: linear-gradient(180deg, #2b2b40, #222234);
+  color: #f7f7fb;
   font-weight: 700;
-  margin-right: 8px;
   flex: 0 0 auto;
-  font-size: 13px;
+  font-size: 17px;
+  letter-spacing: 0.01em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.donneur-next-btn:hover {
+  background: linear-gradient(180deg, #34344d, #29293d);
+  border-color: #505072;
+  filter: none;
+}
+
+.donneur-next-btn:active {
+  transform: translateY(1px);
+}
+
+.donneur-next-btn span:first-child {
+  font-size: 18px;
+}
+
+.donneur-next-arrow {
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.78;
 }
 
 /* make the nbJoueurs control compact */
@@ -137,8 +169,15 @@ h2 {
 
 /* donneur field should expand to fill remaining space */
 .donneur-field {
-  flex: 1 1 0%;
+  flex: 0 1 212px;
+  max-width: 212px;
   min-width: 0;
+}
+
+.donneur-field select {
+  flex: 1 1 auto;
+  min-width: 0;
+  border-radius: 12px;
 }
 
 .field.preneur {
@@ -621,6 +660,10 @@ details.nb-joueurs {
   input, select { padding: 16px 14px; font-size: 18px; min-height: 64px; }
   .contract-btn { padding: 16px 12px; font-size: 20px; min-height: 72px; }
   button { padding: 14px 16px; font-size: 18px; min-height: 60px; }
+  .donneur-next-btn { width: 74px; min-width: 74px; min-height: 64px; padding: 0 12px; border-radius: 16px; }
+  .donneur-next-btn span:first-child { font-size: 20px; }
+  .donneur-next-arrow { font-size: 16px; }
+  .donneur-field { flex-basis: 202px; max-width: 202px; gap: 6px; }
   .card, .players-card, .scores-card, .names-card { width: 100%; padding: 18px; }
   .contract-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .buttons { flex-direction: column; }

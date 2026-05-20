@@ -78,7 +78,10 @@
           </select>
         </div>
         <div class="field compact donneur-field items-center">
-          <span class="left-marker" aria-hidden="true">D</span>
+          <button type="button" class="donneur-next-btn" onclick="passerAuDonneurSuivant()" aria-label="Passer au donneur suivant">
+            <span aria-hidden="true">D</span>
+            <span class="donneur-next-arrow" aria-hidden="true">&#8594;</span>
+          </button>
           <label for="donneurSelect" class="left-label">Donneur</label>
           <select id="donneurSelect" onchange="changerDonneurManuel(this.value)"></select>
         </div>
@@ -749,6 +752,13 @@ function changerDonneurManuel(val) {
   sauvegarderHistorique();
 }
 
+function passerAuDonneurSuivant() {
+  const nb = getNombreJoueurs();
+  let prochain = indexDonneur + 1;
+  if (prochain > nb) prochain = 1;
+  changerDonneurManuel(String(prochain));
+}
+
 function resetPlayersExceptFirst() {
   for (let i = 1; i < 5; i++) {
     nomsJoueurs[i] = "";
@@ -1156,17 +1166,8 @@ if (window.innerWidth <= 600) {
 }
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    // Tentative robuste d'enregistrement : premièrement avec options, puis sans options
-    try {
-      await navigator.serviceWorker.register('./sw.js?v=10', { updateViaCache: 'none' });
-    } catch (e) {
-      try {
-        await navigator.serviceWorker.register('./sw.js?v=10');
-      } catch (e2) {
-        console.warn('ServiceWorker registration failed:', e2);
-      }
-    }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js?v=10', { updateViaCache: 'none' }).catch(() => {});
   });
 }
 </script>
