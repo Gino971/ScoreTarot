@@ -310,6 +310,12 @@ function quitterApp() {
   };
 
   const enModeApp = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const peutRevenirEnArriere = window.history.length > 1;
+
+  if (!enModeApp && peutRevenirEnArriere) {
+    window.history.back();
+    return;
+  }
 
   try {
     window.open('', '_self');
@@ -322,15 +328,10 @@ function quitterApp() {
   window.setTimeout(() => {
     if (document.visibilityState === 'hidden') return;
 
-    try {
-      window.location.replace('about:blank');
-      return;
-    } catch (e) {}
-
     afficherEcranSortie(
       enModeApp
         ? "La fermeture automatique n'est pas autorisée sur cet appareil. Ferme l'app depuis le sélecteur d'apps."
-        : "La fermeture automatique n'est pas autorisée ici. Ferme cet onglet si besoin."
+        : "Aucune fermeture automatique n'est autorisée ici. Ferme cet onglet si besoin, ou utilise le bouton retour du navigateur si disponible."
     );
   }, 120);
 }
@@ -1167,7 +1168,30 @@ if (window.innerWidth <= 600) {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=10', { updateViaCache: 'none' }).catch(() => {});
+    let rechargementDepuisMajSW = false;
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (rechargementDepuisMajSW) return;
+      rechargementDepuisMajSW = true;
+      window.location.reload();
+    });
+
+    navigator.serviceWorker.register('./sw.js?v=11', { updateViaCache: 'none' }).then(registration => {
+      if (registration.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
+
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            newWorker.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+    }).catch(() => {});
   });
 }
 </script>

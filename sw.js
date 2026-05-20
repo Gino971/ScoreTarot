@@ -1,4 +1,4 @@
-const CACHE_NAME = 'scores-tarot-gino-v10';
+const CACHE_NAME = 'scores-tarot-gino-v11';
 const APP_ASSETS = [
   './',
   '/',
@@ -14,11 +14,27 @@ const APP_ASSETS = [
   '/icon-512.png'
 ];
 
+function mettreEnCacheSiValide(request, response) {
+  if (!response || response.status !== 200) {
+    return response;
+  }
+
+  const responseClone = response.clone();
+  caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
+  return response;
+}
+
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(APP_ASSETS))
   );
   self.skipWaiting();
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('activate', event => {
@@ -43,19 +59,15 @@ self.addEventListener('fetch', event => {
   const isSameOrigin = requestUrl.origin === self.location.origin;
   const isNavigationRequest = event.request.mode === 'navigate';
   const isAppShellRequest = isSameOrigin && (requestUrl.pathname.endsWith('/') || requestUrl.pathname.endsWith('/index.html'));
+  const isStaticAsset = isSameOrigin && APP_ASSETS.some(asset => {
+    const assetUrl = new URL(asset, self.location.origin);
+    return assetUrl.pathname === requestUrl.pathname;
+  });
 
   if (isNavigationRequest || isAppShellRequest) {
     event.respondWith(
       fetch(event.request)
-        .then(networkResponse => {
-          if (!networkResponse || networkResponse.status !== 200) {
-            return networkResponse;
-          }
-
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
-          return networkResponse;
-        })
+        .then(networkResponse => mettreEnCacheSiValide(event.request, networkResponse))
         .catch(async () => {
           const cachedResponse = await caches.match(event.request);
           return cachedResponse
@@ -68,6 +80,20 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  if (isStaticAsset) {
+    event.respondWith(
+      fetch(event.request)
+        .then(networkResponse => mettreEnCacheSiValide(event.request, networkResponse))
+        .catch(async () => {
+          const cachedResponse = await caches.match(event.request);
+          return cachedResponse
+            || await caches.match('/index.html')
+            || await caches.match('./index.html');
+        })
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
       if (cachedResponse) {
@@ -75,15 +101,7 @@ self.addEventListener('fetch', event => {
       }
 
       return fetch(event.request)
-        .then(networkResponse => {
-          if (!networkResponse || networkResponse.status !== 200) {
-            return networkResponse;
-          }
-
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, responseClone));
-          return networkResponse;
-        })
+        .then(networkResponse => mettreEnCacheSiValide(event.request, networkResponse))
         .catch(() => caches.match(event.request).then(r => r)
           .then(r => r || caches.match('/index.html') || caches.match('./index.html')));
     })
