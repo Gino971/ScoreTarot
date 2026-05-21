@@ -559,6 +559,83 @@ tr:nth-child(odd) td {
   background: transparent;
 }
 
+.preneur-cell {
+  background: rgba(124, 92, 255, 0.08);
+  overflow: visible;
+}
+
+.score-edit-input {
+  width: 100%;
+  min-width: 0;
+  padding: 6px 4px;
+  min-height: 0;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(12, 12, 18, 0.72);
+  color: inherit;
+  text-align: center;
+  font-size: 12px;
+  box-shadow: none;
+}
+
+.preneur-cell .score-edit-input {
+  border-color: rgba(124, 92, 255, 0.35);
+}
+
+.score-edit-wrap {
+  position: relative;
+  overflow: visible;
+  z-index: 1;
+}
+
+.score-edit-wrap.has-error .score-edit-input {
+  border-color: #fb7185;
+  box-shadow: 0 0 0 1px rgba(251, 113, 133, 0.35);
+}
+
+.score-edit-error {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  min-width: 150px;
+  max-width: 190px;
+  padding: 7px 9px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7f1d1d, #be123c);
+  color: #fff7f8;
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: normal;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.score-edit-error::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #a61b3d;
+}
+
+.score-edit-input::-webkit-outer-spin-button,
+.score-edit-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.score-edit-input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 tr.total-row th {
   border-top: 2px solid rgba(255,255,255,0.35);
   border-bottom: 2px solid rgba(255,255,255,0.35);
