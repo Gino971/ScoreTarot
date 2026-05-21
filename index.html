@@ -68,23 +68,13 @@
     <div class="card" id="panelSaisie">
       <h1>Scores Tarot Gino</h1>
 
-      <div class="row align-center">
-        <div class="field compact inline-small">
-          <select id="nbJoueurs" aria-label="Mode de partie">
-            <option value="3x2">3j (X2)</option>
-            <option value="3x3">3j (X3)</option>
-            <option value="4" selected>4j</option>
-            <option value="5">5j</option>
-          </select>
-        </div>
-        <div class="field compact donneur-field items-center">
-          <button type="button" class="donneur-next-btn" onclick="passerAuDonneurSuivant()" aria-label="Passer au donneur suivant">
-            <span aria-hidden="true">D</span>
-            <span class="donneur-next-arrow" aria-hidden="true">&#8594;</span>
-          </button>
-          <label for="donneurSelect" class="left-label">Donneur</label>
-          <select id="donneurSelect" onchange="changerDonneurManuel(this.value)"></select>
-        </div>
+      <div class="field compact donneur-field items-center">
+        <button type="button" class="donneur-next-btn" onclick="passerAuDonneurSuivant()" aria-label="Passer au donneur suivant">
+          <span aria-hidden="true">D</span>
+          <span class="donneur-next-arrow" aria-hidden="true">&#8594;</span>
+        </button>
+        <label for="donneurSelect" class="left-label">Donneur</label>
+        <select id="donneurSelect" onchange="changerDonneurManuel(this.value)"></select>
       </div>
 
       <div class="field compact" id="fieldMort">
@@ -177,6 +167,15 @@
     <div class="players-card" id="panelJoueurs">
       <h2>Joueurs de la partie</h2>
       <div class="mt-8">
+        <div class="field compact inline-small mode-field">
+          <label for="nbJoueurs">Nombre de joueurs</label>
+          <select id="nbJoueurs" aria-label="Mode de partie">
+            <option value="3x2">3j (X2)</option>
+            <option value="3x3">3j (X3)</option>
+            <option value="4" selected>4j</option>
+            <option value="5">5j</option>
+          </select>
+        </div>
         <div class="players-select-row">
           <div class="field" id="fieldJ1">
             <label for="selectJ1">Joueur 1</label>
