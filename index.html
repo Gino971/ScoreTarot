@@ -1016,10 +1016,13 @@ function calculerScore() {
 
 function validerDonneAuto() {
   const nbJoueurs = getNombreJoueurs();
+  const preneurId = Number(document.getElementById('preneur').value || 0);
 
   const donne = {
     id: prochainIdDonne++,
+    mode: getModePartie(),
     nbJoueurs: nbJoueurs,
+    preneur: preneurId,
     mort: (estModeCinqJoueurs() ? getIndexMortActuel() : 0),
     scores: derniersScores.slice(0, nbJoueurs)
   };
@@ -1048,6 +1051,146 @@ function renumeroterDonnes() {
 function supprimerDonne(id) {
   historiqueDonnes = historiqueDonnes.filter(d => d.id !== id);
   renumeroterDonnes();
+  sauvegarderHistorique();
+  afficherTableauScores();
+}
+
+function getDiviseurDefensePourDonne(donne) {
+  if (donne.mode === '3x2') return 2;
+  return 3;
+}
+
+function detecterModeDonne(donne) {
+  if (donne.mode) return donne.mode;
+  if (donne.nbJoueurs !== 3) return String(donne.nbJoueurs || 4);
+
+  for (const diviseur of [2, 3]) {
+    for (let i = 0; i < 3; i++) {
+      const attaque = Number(donne.scores[i] || 0);
+      if (attaque % diviseur !== 0) continue;
+      const defense = -attaque / diviseur;
+      const autres = donne.scores.filter((_, index) => index !== i);
+      if (autres.length === 2 && autres.every(score => Number(score || 0) === defense)) {
+        return diviseur === 2 ? '3x2' : '3x3';
+      }
+    }
+  }
+
+  return '3x2';
+}
+
+function detecterPreneurDonne(donne) {
+  if (donne.preneur && donne.preneur >= 1) {
+    return donne.preneur - 1;
+  }
+
+  const mode = detecterModeDonne(donne);
+  const diviseur = mode === '3x2' ? 2 : 3;
+  const mortIndex = donne.nbJoueurs === 5 ? (Number(donne.mort || 0) - 1) : -1;
+
+  for (let i = 0; i < donne.nbJoueurs; i++) {
+    if (i === mortIndex) continue;
+    const attaque = Number(donne.scores[i] || 0);
+    if (attaque % diviseur !== 0) continue;
+    const defense = -attaque / diviseur;
+
+    let valide = true;
+    for (let j = 0; j < donne.nbJoueurs; j++) {
+      if (j === i) continue;
+      const score = Number(donne.scores[j] || 0);
+      if (j === mortIndex) {
+        if (score !== 0) valide = false;
+        continue;
+      }
+      if (score !== defense) valide = false;
+    }
+    if (valide) return i;
+  }
+
+  return -1;
+}
+
+function afficherErreurScorePreneur(input, message) {
+  if (!input) {
+    alert(message);
+    return;
+  }
+
+  const wrap = input.closest('.score-edit-wrap');
+  if (!wrap) {
+    alert(message);
+    return;
+  }
+
+  let bubble = wrap.querySelector('.score-edit-error');
+  if (!bubble) {
+    bubble = document.createElement('div');
+    bubble.className = 'score-edit-error';
+    wrap.appendChild(bubble);
+  }
+
+  bubble.textContent = message;
+  wrap.classList.add('has-error');
+  input.setAttribute('aria-invalid', 'true');
+
+  if (input._scoreErrorTimer) {
+    window.clearTimeout(input._scoreErrorTimer);
+  }
+
+  input._scoreErrorTimer = window.setTimeout(() => {
+    wrap.classList.remove('has-error');
+    input.removeAttribute('aria-invalid');
+    if (bubble) {
+      bubble.remove();
+    }
+    input.focus();
+    const cursorPosition = String(input.value || '').length;
+    if (typeof input.setSelectionRange === 'function') {
+      input.setSelectionRange(cursorPosition, cursorPosition);
+    }
+    input._scoreErrorTimer = null;
+  }, 1500);
+}
+
+function corrigerScorePreneur(id, valeur, inputEl) {
+  const donne = historiqueDonnes.find(d => d.id === id);
+  if (!donne || !Array.isArray(donne.scores)) return;
+
+  const mode = detecterModeDonne(donne);
+  const diviseur = getDiviseurDefensePourDonne({ mode });
+  const preneurIndex = detecterPreneurDonne({ ...donne, mode });
+  if (preneurIndex < 0) {
+    afficherErreurScorePreneur(inputEl, "Impossible d'identifier automatiquement le preneur.");
+    return;
+  }
+
+  let scorePreneur = Number(valeur);
+  if (Number.isNaN(scorePreneur)) {
+    scorePreneur = 0;
+  }
+
+  if (scorePreneur % diviseur !== 0) {
+    afficherErreurScorePreneur(inputEl, diviseur === 2
+      ? "multiple de 2 attendu"
+      : "multiple de 3 attendu");
+    return;
+  }
+
+  const scoreDefense = -scorePreneur / diviseur;
+  const mortIndex = donne.nbJoueurs === 5 ? (Number(donne.mort || 0) - 1) : -1;
+
+  for (let i = 0; i < donne.nbJoueurs; i++) {
+    if (i === preneurIndex) {
+      donne.scores[i] = scorePreneur;
+    } else if (i === mortIndex) {
+      donne.scores[i] = 0;
+    } else {
+      donne.scores[i] = scoreDefense;
+    }
+  }
+
+  donne.mode = mode;
+  donne.preneur = preneurIndex + 1;
   sauvegarderHistorique();
   afficherTableauScores();
 }
@@ -1096,16 +1239,25 @@ function afficherTableauScores() {
 
     html += `<td><span class="cell-id"><span>${d.id}</span><button type="button" class="btn-trash" title="Supprimer cette donne" onclick="supprimerDonne(${d.id})">🗑️</button></span></td>`;
 
+    const modeDonne = detecterModeDonne(d);
+    const preneurIndex = detecterPreneurDonne({ ...d, mode: modeDonne });
+
     for (let i = 0; i < nbJoueurs; i++) {
       const val = d.scores[i] || 0;
       totaux[i] += val;
       const isMort = (d.nbJoueurs === 5 && d.mort === (i + 1));
       const isNegative = val < 0;
+      const isPreneur = i === preneurIndex;
       let classes = [];
       if (isMort) classes.push("mort-cell");
       if (isNegative) classes.push("negative");
+      if (isPreneur) classes.push("preneur-cell");
       const clsAttr = classes.length ? ` class="${classes.join(" ")}"` : "";
-      html += `<td${clsAttr}>${val > 0 ? "+" : ""}${val}</td>`;
+      if (isPreneur) {
+        html += `<td${clsAttr}><div class="score-edit-wrap"><input class="score-edit-input" type="number" inputmode="numeric" value="${val}" onchange="corrigerScorePreneur(${d.id}, this.value, this)" aria-label="Corriger le score du preneur ${getNom(i + 1)} pour la donne ${d.id}" /></div></td>`;
+      } else {
+        html += `<td${clsAttr}>${val > 0 ? "+" : ""}${val}</td>`;
+      }
     }
 
     html += `</tr>`;
