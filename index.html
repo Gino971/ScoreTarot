@@ -70,20 +70,14 @@
 
       <div class="field compact donneur-field items-center">
         <button type="button" class="donneur-next-btn" onclick="passerAuDonneurSuivant()" aria-label="Passer au donneur suivant">
-          <span aria-hidden="true">D</span>
+          <span class="donneur-button-copy" aria-hidden="true">
+            <span id="donneurButtonText">Donneur</span>
+            <span id="mortButtonText" class="mort-button-text"></span>
+          </span>
           <span class="donneur-next-arrow" aria-hidden="true">&#8594;</span>
         </button>
         <label for="donneurSelect" class="left-label">Donneur</label>
         <select id="donneurSelect" onchange="changerDonneurManuel(this.value)"></select>
-      </div>
-
-      <div class="field compact" id="fieldMort">
-        <label for="mortSelect">Premier mort</label>
-        <select id="mortSelect" onchange="changerMortManuel(this.value)"></select>
-      </div>
-
-      <div class="small" id="hintMort">
-        Utilisé uniquement en 5 joueurs. Choisis le premier mort, puis la rotation continue automatiquement.
       </div>
 
         <div class="field compact preneur">
@@ -353,6 +347,13 @@ function estModeCinqJoueurs() {
   return getModePartie() === '5';
 }
 
+function getIndexMortActuel() {
+  if (estModeCinqJoueurs()) {
+    return indexDonneur;
+  }
+  return indexMortActuel;
+}
+
 function estModeTroisJoueursX3() {
   return getModePartie() === '3x3';
 }
@@ -475,24 +476,17 @@ function setContrat(value, buttonEl) {
 function appliquerChangementNbJoueurs() {
   const mode = getModePartie();
   const nb = getNombreJoueurs();
-  const fieldMort = document.getElementById('fieldMort');
-  const hintMort = document.getElementById('hintMort');
 
   if (mode === '5' && dernierModePartie !== '5') {
-    indexMortActuel = 1;
+    indexDonneur = 1;
   }
   if (indexMortActuel > nb) indexMortActuel = 1;
+  if (indexDonneur > nb) indexDonneur = 1;
   mettreAJourChampsJoueurs();
+  mettreAJourDonneurSelect();
   mettreAJourPreneur();
   mettreAJourMortSelect();
   afficherTableauScores();
-
-  if (fieldMort) {
-    fieldMort.style.display = estModeCinqJoueurs() ? '' : 'none';
-  }
-  if (hintMort) {
-    hintMort.style.display = estModeCinqJoueurs() ? '' : 'none';
-  }
 
   dernierModePartie = mode;
 }
@@ -607,7 +601,7 @@ function sauvegarderListeNoms() {
 function sauvegarderHistorique() {
   try {
     localStorage.setItem(HISTO_STORAGE_KEY, JSON.stringify(historiqueDonnes));
-    localStorage.setItem(MORT_STORAGE_KEY, String(indexMortActuel));
+    localStorage.setItem(MORT_STORAGE_KEY, String(getIndexMortActuel()));
     try { localStorage.setItem(DONNEUR_STORAGE_KEY, String(indexDonneur)); } catch (e) {}
   } catch (e) {}
 }
@@ -741,6 +735,20 @@ function mettreAJourDonneurSelect() {
   }
   el.value = String(indexDonneur > 0 ? indexDonneur : 1);
   updateCompactFieldState(el.closest('.field'));
+  mettreAJourInfoMort();
+}
+
+function mettreAJourInfoMort() {
+  const buttonText = document.getElementById('donneurButtonText');
+  const mortButtonText = document.getElementById('mortButtonText');
+  const button = document.querySelector('.donneur-next-btn');
+  if (!buttonText || !mortButtonText || !button) return;
+
+  const estMort = estModeCinqJoueurs();
+  buttonText.textContent = 'Donneur';
+  mortButtonText.textContent = estMort ? '& mort' : '';
+  mortButtonText.style.display = estMort ? 'block' : 'none';
+  button.setAttribute('aria-label', estMort ? 'Passer au donneur et mort suivants' : 'Passer au donneur suivant');
 }
 
 function changerDonneurManuel(val) {
@@ -749,6 +757,9 @@ function changerDonneurManuel(val) {
   if (isNaN(idx) || idx < 1 || idx > nb) idx = 1;
   indexDonneur = idx;
   mettreAJourDonneurSelect();
+  mettreAJourMortSelect();
+  mettreAJourPreneur();
+  afficherTableauScores();
   sauvegarderHistorique();
 }
 
@@ -825,16 +836,13 @@ function choisirJoueur(i, nom) {
 }
 
 function mettreAJourMortSelect() {
-  const mortSelect = document.getElementById('mortSelect');
-  const nb = getNombreJoueurs();
-  mortSelect.innerHTML = "";
-  for (let i = 1; i <= nb; i++) {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = getNom(i);
-    mortSelect.appendChild(opt);
+  if (estModeCinqJoueurs()) {
+    indexMortActuel = indexDonneur;
+    return;
   }
-  mortSelect.value = String(indexMortActuel);
+
+  const nb = getNombreJoueurs();
+  if (indexMortActuel > nb) indexMortActuel = 1;
 }
 
 function changerMortManuel(val) {
@@ -866,7 +874,7 @@ function mettreAJourPreneur() {
     const opt = document.createElement('option');
     opt.value = i;
     opt.textContent = getNom(i);
-    if (estModeCinqJoueurs() && i === indexMortActuel) {
+    if (estModeCinqJoueurs() && i === getIndexMortActuel()) {
       opt.disabled = true;
     }
     preneurSelect.appendChild(opt);
@@ -877,7 +885,7 @@ function mettreAJourPreneur() {
   if (!nouveau || nouveauNum > nb) {
     nouveau = "";
   }
-  if (estModeCinqJoueurs() && nouveauNum === indexMortActuel) {
+  if (estModeCinqJoueurs() && nouveauNum === getIndexMortActuel()) {
     nouveau = "";
   }
   preneurSelect.value = String(nouveau);
@@ -929,7 +937,7 @@ function calculerScore() {
 
   const S = scoreContrat + primePetit + ajustementPoignee + primeChelem;
 
-  if (estModeCinqJoueurs() && preneurId === indexMortActuel) {
+  if (estModeCinqJoueurs() && preneurId === getIndexMortActuel()) {
     alert("En 5 joueurs, le mort ne peut pas être preneur.\nChoisis un autre joueur preneur.");
     return;
   }
@@ -951,7 +959,7 @@ function calculerScore() {
   let roleIndex = 1;
   for (let i = 0; i < nbJoueurs; i++) {
     if (i === preneurId - 1) continue;
-    if (estModeCinqJoueurs() && (i + 1) === indexMortActuel) continue;
+    if (estModeCinqJoueurs() && (i + 1) === getIndexMortActuel()) continue;
     joueursScores[i] = roleScores[roleIndex] || 0;
     roleIndex++;
   }
@@ -976,7 +984,7 @@ function calculerScore() {
     const score = derniersScores[i] || 0;
     let label = getNom(i + 1);
     if (i === preneurId - 1) label += " (Preneur)";
-    if (estModeCinqJoueurs() && (i + 1) === indexMortActuel) label += " – mort";
+    if (estModeCinqJoueurs() && (i + 1) === getIndexMortActuel()) label += " – mort";
     inner += `<div class="line"><span>${label}</span><span>${score > 0 ? "+" : ""}${score}</span></div>`;
   }
 
@@ -1012,24 +1020,19 @@ function validerDonneAuto() {
   const donne = {
     id: prochainIdDonne++,
     nbJoueurs: nbJoueurs,
-    mort: (estModeCinqJoueurs() ? indexMortActuel : 0),
+    mort: (estModeCinqJoueurs() ? getIndexMortActuel() : 0),
     scores: derniersScores.slice(0, nbJoueurs)
   };
   historiqueDonnes.push(donne);
   sauvegarderHistorique();
-
-  if (estModeCinqJoueurs()) {
-    indexMortActuel++;
-    if (indexMortActuel > 5) indexMortActuel = 1;
-    mettreAJourMortSelect();
-    mettreAJourPreneur();
-  }
 
   // faire tourner le donneur après chaque donne validée
   indexDonneur++;
   const nb = getNombreJoueurs();
   if (indexDonneur > nb) indexDonneur = 1;
   mettreAJourDonneurSelect();
+  mettreAJourMortSelect();
+  mettreAJourPreneur();
   sauvegarderHistorique();
 
   afficherTableauScores();
@@ -1148,18 +1151,6 @@ afficherTableauScores();
 remplirSelectEcart();
 initCompactFields();
 appliquerChangementNbJoueurs();
-
-(function () {
-  const nb = getNombreJoueurs();
-  const fieldMort = document.getElementById('fieldMort');
-  const hintMort = document.getElementById('hintMort');
-  if (fieldMort) {
-    fieldMort.style.display = estModeCinqJoueurs() ? '' : 'none';
-  }
-  if (hintMort) {
-    hintMort.style.display = estModeCinqJoueurs() ? '' : 'none';
-  }
-})();
 
 if (window.innerWidth <= 600) {
   showPanel('saisie');

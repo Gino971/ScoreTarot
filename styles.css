@@ -120,12 +120,12 @@ h2 {
 .donneur-next-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 72px;
-  min-width: 72px;
-  height: 50px;
-  min-height: 50px;
+  justify-content: space-between;
+  gap: 8px;
+  width: 132px;
+  min-width: 132px;
+  height: 58px;
+  min-height: 58px;
   padding: 0 12px;
   border-radius: 999px;
   border: none;
@@ -142,8 +142,23 @@ h2 {
   transform: translateY(1px);
 }
 
-.donneur-next-btn span:first-child {
-  font-size: 17px;
+.donneur-button-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  line-height: 1.05;
+}
+
+#donneurButtonText {
+  font-size: 15px;
+}
+
+.mort-button-text {
+  display: none;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.92;
 }
 
 .donneur-next-arrow {
@@ -658,7 +673,7 @@ details.nb-joueurs {
   input, select { padding: 16px 14px; font-size: 18px; min-height: 64px; }
   .contract-btn { padding: 16px 12px; font-size: 20px; min-height: 72px; }
   button { padding: 14px 16px; font-size: 18px; min-height: 60px; }
-  .donneur-next-btn { width: 78px; min-width: 78px; min-height: 64px; padding: 0 12px; border-radius: 16px; }
+  .donneur-next-btn { width: 136px; min-width: 136px; min-height: 64px; padding: 0 14px; border-radius: 16px; }
   .donneur-next-btn span:first-child { font-size: 19px; }
   .donneur-next-arrow { font-size: 15px; }
   .inline-small { flex-basis: 92px; max-width: 92px; min-width: 78px; }
