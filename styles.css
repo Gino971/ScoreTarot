@@ -179,6 +179,24 @@ h2 {
   margin-bottom: 10px;
 }
 
+.mode-field select {
+  min-height: 58px;
+  border: none;
+  border-radius: 999px;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>"), linear-gradient(135deg, #7c5cff, #ff6fb1);
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 12px center, center;
+  background-size: 16px, cover;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5);
+}
+
+.mode-field select:focus {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.18), 0 10px 24px rgba(0, 0, 0, 0.5);
+}
+
 /* donneur field should expand to fill remaining space */
 .donneur-field {
   flex: 1 1 0%;
@@ -668,6 +686,20 @@ tr.total-row th {
   align-items: center;
   margin-bottom: 2px;
   gap: 4px;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.players-list-item:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.players-list-item:nth-child(even) {
+  background: rgba(124, 92, 255, 0.08);
+}
+
+.players-list-item:hover {
+  background: rgba(255, 111, 177, 0.12);
 }
 
 .players-list-name {
@@ -675,6 +707,20 @@ tr.total-row th {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.players-list-edit-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 10px;
+}
+
+.players-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
 }
 
 .collapse-summary {

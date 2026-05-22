@@ -250,6 +250,7 @@ const NOMS_JOUEURS_STORAGE_KEY = 'scores_tarot_gino_noms_joueurs';
 let listeNoms = [];
 let nomsJoueurs = ["", "", "", "", ""];
 let indexDonneur = 1; // 1..5
+let indexNomEnEdition = -1;
 
 function remplirSelectEcart() {
   const select = document.getElementById('ecart');
@@ -664,19 +665,126 @@ function renderListeNoms() {
   listeNoms.forEach((nom, index) => {
     const row = document.createElement('div');
     row.className = 'players-list-item';
-    const span = document.createElement('span');
-    span.className = 'players-list-name';
-    span.textContent = nom;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'btn-trash';
-    btn.textContent = '🗑️';
-    btn.title = 'Supprimer ce nom';
-    btn.onclick = () => supprimerNom(index);
-    row.appendChild(span);
-    row.appendChild(btn);
+
+    if (indexNomEnEdition === index) {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = nom;
+      input.className = 'players-list-edit-input';
+      input.setAttribute('aria-label', `Modifier le nom ${nom}`);
+      input.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          renommerNom(index, input.value);
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          annulerEditionNom();
+        }
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'players-list-actions';
+
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.className = 'small-btn';
+      saveBtn.textContent = 'OK';
+      saveBtn.title = 'Enregistrer ce nom';
+      saveBtn.onclick = () => renommerNom(index, input.value);
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.className = 'small-btn secondary';
+      cancelBtn.textContent = 'Annuler';
+      cancelBtn.title = 'Annuler la modification';
+      cancelBtn.onclick = () => annulerEditionNom();
+
+      actions.appendChild(saveBtn);
+      actions.appendChild(cancelBtn);
+      row.appendChild(input);
+      row.appendChild(actions);
+
+      window.setTimeout(() => {
+        input.focus();
+        const end = input.value.length;
+        if (typeof input.setSelectionRange === 'function') {
+          input.setSelectionRange(end, end);
+        }
+      }, 0);
+    } else {
+      const span = document.createElement('span');
+      span.className = 'players-list-name';
+      span.textContent = nom;
+
+      const actions = document.createElement('div');
+      actions.className = 'players-list-actions';
+
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'small-btn';
+      editBtn.textContent = '✏️';
+      editBtn.title = 'Modifier ce nom';
+      editBtn.setAttribute('aria-label', `Modifier le nom ${nom}`);
+      editBtn.onclick = () => demarrerEditionNom(index);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn-trash';
+      deleteBtn.textContent = '🗑️';
+      deleteBtn.title = 'Supprimer ce nom';
+      deleteBtn.onclick = () => supprimerNom(index);
+
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+      row.appendChild(span);
+      row.appendChild(actions);
+    }
+
     container.appendChild(row);
   });
+}
+
+function demarrerEditionNom(index) {
+  indexNomEnEdition = index;
+  renderListeNoms();
+}
+
+function annulerEditionNom() {
+  indexNomEnEdition = -1;
+  renderListeNoms();
+}
+
+function renommerNom(index, nouveauNom) {
+  const ancienNom = listeNoms[index];
+  const nomNettoye = (nouveauNom || '').trim();
+  if (!ancienNom) {
+    annulerEditionNom();
+    return;
+  }
+  if (!nomNettoye) {
+    alert('Le nom ne peut pas être vide.');
+    return;
+  }
+
+  const nomExiste = listeNoms.some((nom, idx) => idx !== index && nom.localeCompare(nomNettoye, 'fr', { sensitivity: 'base' }) === 0);
+  if (nomExiste) {
+    alert("Ce nom est déjà utilisé par un autre joueur. Choisis-en un autre.");
+    return;
+  }
+
+  listeNoms[index] = nomNettoye;
+  for (let i = 0; i < nomsJoueurs.length; i++) {
+    if (nomsJoueurs[i] === ancienNom) {
+      nomsJoueurs[i] = nomNettoye;
+    }
+  }
+
+  indexNomEnEdition = -1;
+  trierNoms();
+  sauvegarderListeNoms();
+  sauvegarderNomsJoueurs();
+  renderListeNoms();
+  remplirSelectsJoueurs();
 }
 
 function remplirSelectsJoueurs() {
@@ -791,19 +899,27 @@ function ajouterNom() {
   const input = document.getElementById('nouveauNom');
   const val = (input.value || "").trim();
   if (!val) return;
-  if (!listeNoms.includes(val)) {
-    listeNoms.push(val);
-    trierNoms();
-    sauvegarderListeNoms();
-    renderListeNoms();
-    remplirSelectsJoueurs();
+  const nomExiste = listeNoms.some(nom => nom.localeCompare(val, 'fr', { sensitivity: 'base' }) === 0);
+  if (nomExiste) {
+    alert("Ce nom est déjà utilisé par un autre joueur. Choisis-en un autre.");
+    input.focus();
+    return;
   }
+
+  listeNoms.push(val);
+  trierNoms();
+  sauvegarderListeNoms();
+  renderListeNoms();
+  remplirSelectsJoueurs();
   input.value = "";
 }
 
 function supprimerNom(index) {
   const nomSupprime = listeNoms[index];
   listeNoms.splice(index, 1);
+  if (indexNomEnEdition === index) {
+    indexNomEnEdition = -1;
+  }
   for (let i = 0; i < nomsJoueurs.length; i++) {
     if (nomsJoueurs[i] === nomSupprime) {
       nomsJoueurs[i] = "";
