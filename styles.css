@@ -691,15 +691,15 @@ tr.total-row th {
 }
 
 .players-list-item:nth-child(odd) {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .players-list-item:nth-child(even) {
-  background: rgba(124, 92, 255, 0.08);
+  background: rgba(124, 92, 255, 0.3);
 }
 
 .players-list-item:hover {
-  background: rgba(255, 111, 177, 0.12);
+  background: rgba(255, 111, 177, 0.3);
 }
 
 .players-list-name {

@@ -369,10 +369,23 @@ function mettreAJourChampsJoueurs() {
   }
 }
 
+function normaliserNom(valeur) {
+  const texte = String(valeur || '').trim().replace(/\s+/g, ' ');
+  if (!texte) return '';
+
+  return texte
+    .split(' ')
+    .map(segment => {
+      const mot = segment.toLocaleLowerCase('fr');
+      return mot.charAt(0).toLocaleUpperCase('fr') + mot.slice(1);
+    })
+    .join(' ');
+}
+
 function normaliserListeNoms(valeur) {
   if (Array.isArray(valeur)) {
     return valeur
-      .map(nom => String(nom || '').trim())
+      .map(nom => normaliserNom(nom))
       .filter(Boolean);
   }
 
@@ -383,14 +396,14 @@ function normaliserListeNoms(valeur) {
     const json = JSON.parse(texte);
     if (Array.isArray(json)) {
       return json
-        .map(nom => String(nom || '').trim())
+        .map(nom => normaliserNom(nom))
         .filter(Boolean);
     }
   } catch (e) {}
 
   return texte
     .split(/\r?\n|;/)
-    .map(nom => nom.trim())
+    .map(nom => normaliserNom(nom))
     .filter(Boolean);
 }
 
@@ -542,7 +555,7 @@ function chargerListeNoms() {
     if (data) {
       const arr = JSON.parse(data);
       if (Array.isArray(arr) && arr.length > 0) {
-        listeNoms = arr;
+        listeNoms = dedupliquerNoms(normaliserListeNoms(arr));
         trierNoms();
         return;
       }
@@ -649,7 +662,7 @@ function chargerNomsJoueurs() {
     if (data) {
       const arr = JSON.parse(data);
       if (Array.isArray(arr) && arr.length === 5) {
-        nomsJoueurs = arr;
+        nomsJoueurs = arr.map(nom => normaliserNom(nom));
       }
     }
   } catch (e) {}
@@ -756,7 +769,7 @@ function annulerEditionNom() {
 
 function renommerNom(index, nouveauNom) {
   const ancienNom = listeNoms[index];
-  const nomNettoye = (nouveauNom || '').trim();
+  const nomNettoye = normaliserNom(nouveauNom);
   if (!ancienNom) {
     annulerEditionNom();
     return;
@@ -897,7 +910,7 @@ function initialiserNomsParDefaut() {
 
 function ajouterNom() {
   const input = document.getElementById('nouveauNom');
-  const val = (input.value || "").trim();
+  const val = normaliserNom(input.value);
   if (!val) return;
   const nomExiste = listeNoms.some(nom => nom.localeCompare(val, 'fr', { sensitivity: 'base' }) === 0);
   if (nomExiste) {
