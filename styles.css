@@ -763,6 +763,7 @@ details.nb-joueurs {
   .layout {
     max-width: 100%;
     padding: 10px;
+    min-height: 100dvh;
   }
   .tabs {
     display: flex;
@@ -771,7 +772,10 @@ details.nb-joueurs {
     width: 100%;
   }
   .panels {
+    display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
   }
   .card, .scores-card, .players-card, .names-card {
     width: 100%;
@@ -784,6 +788,27 @@ details.nb-joueurs {
   .players-card.active-panel,
   .names-card.active-panel {
     display: block;
+  }
+  .names-card.active-panel {
+    height: calc(100dvh - 92px);
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .names-card .mt-8 {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .names-card .players-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+  }
+  .names-card .backup-box {
+    flex: 0 0 auto;
+    margin-top: 10px;
   }
   .row { flex-direction: row; }
   .buttons { flex-direction: column; }
