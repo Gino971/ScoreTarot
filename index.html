@@ -150,7 +150,7 @@
     <div class="scores-card" id="panelRecap">
     <div class="header-row">
         <h2>Scores</h2>
-        <button type="button" class="secondary" onclick="effacerTout()">Tout effacer</button>
+        <button type="button" onclick="effacerTout()">Tout effacer</button>
       </div>
       <div id="tableauScores" class="small">
         Saisis une donne, clique sur “Calculer”.
@@ -369,6 +369,23 @@ function mettreAJourChampsJoueurs() {
   }
 }
 
+function viderJoueursInactifs(nb) {
+  let aChange = false;
+
+  for (let i = nb; i < nomsJoueurs.length; i++) {
+    if (nomsJoueurs[i] !== '') {
+      nomsJoueurs[i] = '';
+      aChange = true;
+    }
+  }
+
+  if (aChange) {
+    sauvegarderNomsJoueurs();
+  }
+
+  return aChange;
+}
+
 function normaliserNom(valeur) {
   const texte = String(valeur || '').trim().replace(/\s+/g, ' ');
   if (!texte) return '';
@@ -496,11 +513,17 @@ function appliquerChangementNbJoueurs() {
   }
   if (indexMortActuel > nb) indexMortActuel = 1;
   if (indexDonneur > nb) indexDonneur = 1;
+  const joueursInactifsVides = viderJoueursInactifs(nb);
   mettreAJourChampsJoueurs();
-  mettreAJourDonneurSelect();
-  mettreAJourPreneur();
-  mettreAJourMortSelect();
-  afficherTableauScores();
+
+  if (joueursInactifsVides) {
+    remplirSelectsJoueurs();
+  } else {
+    mettreAJourDonneurSelect();
+    mettreAJourPreneur();
+    mettreAJourMortSelect();
+    afficherTableauScores();
+  }
 
   dernierModePartie = mode;
 }
