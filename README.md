@@ -22,6 +22,13 @@ Application statique compatible GitHub Pages et installable en PWA.
 ## Mode hors ligne
 
 La PWA met en cache les fichiers statiques pour continuer a fonctionner hors ligne apres une premiere ouverture en ligne.
+Une fois la version la plus recente chargee, l'ouverture de l'app privilegie le cache local et ne depend plus d'un acces reseau pour afficher l'interface.
+
+## Mise a jour de l'app installee
+
+1. Ouvre l'app une fois avec une connexion internet apres publication d'une nouvelle version.
+2. Ferme puis relance l'app.
+3. Les lancements suivants peuvent se faire hors ligne avec les fichiers deja en cache.
 
 ## Stockage des scores
 
