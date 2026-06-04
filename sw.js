@@ -1,20 +1,34 @@
-const CACHE_NAME = 'scores-tarot-gino-v12';
+const CACHE_NAME = 'scores-tarot-gino-v13';
 const APP_ASSETS = [
   './',
-  '/',
   './index.html',
-  '/index.html',
   './manifest.webmanifest',
-  '/manifest.webmanifest',
   './styles.css',
-  '/styles.css',
   './icon-192.png',
-  '/icon-192.png',
   './icon-512.png',
-  '/icon-512.png',
-  './Excuse.png',
-  '/Excuse.png'
+  './Excuse.png'
 ];
+const APP_SCOPE_URL = new URL('./', self.registration.scope).toString();
+const APP_SHELL_URL = new URL('./index.html', self.registration.scope).toString();
+
+async function precacherAssets() {
+  const cache = await caches.open(CACHE_NAME);
+
+  await Promise.all(
+    APP_ASSETS.map(async asset => {
+      const request = new Request(asset, { cache: 'reload' });
+
+      try {
+        const response = await fetch(request);
+        if (response && response.ok) {
+          await cache.put(request, response);
+        }
+      } catch (error) {
+        // Ignore a single asset failure so the app shell can still install offline.
+      }
+    })
+  );
+}
 
 function mettreEnCacheSiValide(request, response) {
   if (!response || response.status !== 200) {
@@ -28,10 +42,8 @@ function mettreEnCacheSiValide(request, response) {
 
 async function reponseDepuisCache(request) {
   return caches.match(request)
-    || caches.match('/index.html')
-    || caches.match('./index.html')
-    || caches.match('/')
-    || caches.match('./');
+    || caches.match(APP_SHELL_URL)
+    || caches.match(APP_SCOPE_URL);
 }
 
 async function staleWhileRevalidate(request) {
@@ -50,9 +62,7 @@ async function staleWhileRevalidate(request) {
 }
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_ASSETS))
-  );
+  event.waitUntil(precacherAssets());
   self.skipWaiting();
 });
 
