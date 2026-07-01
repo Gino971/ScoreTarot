@@ -37,6 +37,7 @@
         <path d="M12 20h9" />
         <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
       </svg>
+      <span class="tab-timer-hint" aria-hidden="true"></span>
     </button>
     <button class="tab-btn" id="tabRecap" onclick="showPanel('recap')" title="Scores" aria-label="Scores">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -44,6 +45,7 @@
         <rect x="10" y="7" width="4" height="14" rx="1" />
         <rect x="17" y="3" width="4" height="18" rx="1" />
       </svg>
+      <span class="tab-timer-hint" aria-hidden="true"></span>
     </button>
     <button class="tab-btn" id="tabJoueurs" onclick="showPanel('joueurs')" title="Joueurs" aria-label="Joueurs">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -52,6 +54,7 @@
         <circle cx="17.5" cy="8.5" r="2.5" />
         <path d="M13 20c0-2.5 2-4.5 4.5-4.5S21 17.5 21 20" />
       </svg>
+      <span class="tab-timer-hint" aria-hidden="true"></span>
     </button>
     <button class="tab-btn" id="tabNoms" onclick="showPanel('noms')" title="Liste des noms" aria-label="Liste des noms">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -60,8 +63,19 @@
         <path d="M7 11h10" />
         <path d="M7 15h10" />
       </svg>
+      <span class="tab-timer-hint" aria-hidden="true"></span>
+    </button>
+    <button class="tab-btn" id="tabTimer" onclick="showPanel('timer')" title="Minuteur" aria-label="Minuteur">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="13" r="8" />
+        <path d="M12 13V9" />
+        <path d="M12 13l3 2" />
+        <path d="M9 2h6" />
+      </svg>
     </button>
   </div>
+
+  <div id="timerReminderMobile" class="timer-reminder-mobile" aria-live="polite"></div>
 
   <div class="panels">
     <!-- Saisie -->
@@ -230,6 +244,33 @@
         </details>
       </div>
     </div>
+
+    <!-- Minuteur -->
+    <div class="timer-card" id="panelTimer">
+      <h2>Minuteur</h2>
+      <div class="timer-display" id="timerDisplay" aria-live="polite">00:00</div>
+
+      <div class="timer-presets" role="group" aria-label="Pré-sélections">
+        <button type="button" class="timer-preset-btn" onclick="lancerPresetTimer(35)">35 min</button>
+        <button type="button" class="timer-preset-btn" onclick="lancerPresetTimer(40)">40 min</button>
+        <button type="button" class="timer-preset-btn" onclick="lancerPresetTimer(45)">45 min</button>
+        <button type="button" class="timer-preset-btn" onclick="lancerPresetTimer(50)">50 min</button>
+      </div>
+
+      <div class="timer-custom-row">
+        <div class="field compact">
+          <label for="timerCustomMinutes">Durée libre (minutes)</label>
+          <input id="timerCustomMinutes" type="text" inputmode="decimal" placeholder="Durée libre" />
+        </div>
+        <button type="button" class="small-btn timer-custom-btn" onclick="lancerTimerLibre()">Lancer</button>
+      </div>
+
+      <div class="timer-actions">
+        <button type="button" onclick="basculerPauseTimer()" id="timerPauseBtn">Pause</button>
+        <button type="button" class="secondary" onclick="reinitialiserTimer()">Réinit</button>
+      </div>
+      <div class="small" id="timerStatus">Choisis une durée pour lancer le minuteur.</div>
+    </div>
   </div>
 
   <!-- Bouton Quitter déplacé en haut à droite -->
@@ -247,10 +288,17 @@ const HISTO_STORAGE_KEY = 'scores_tarot_gino_historique';
 const MORT_STORAGE_KEY  = 'scores_tarot_gino_mort';
 const DONNEUR_STORAGE_KEY = 'scores_tarot_gino_donneur';
 const NOMS_JOUEURS_STORAGE_KEY = 'scores_tarot_gino_noms_joueurs';
+const TIMER_STORAGE_KEY = 'scores_tarot_gino_timer';
 let listeNoms = [];
 let nomsJoueurs = ["", "", "", "", ""];
 let indexDonneur = 1; // 1..5
 let indexNomEnEdition = -1;
+
+let timerIntervalId = null;
+let timerTargetTs = 0;
+let timerRemainingMs = 0;
+let timerRunning = false;
+let timerHasFinished = false;
 
 function remplirSelectEcart() {
   const select = document.getElementById('ecart');
@@ -475,13 +523,15 @@ function showPanel(which) {
     saisie: 'panelSaisie',
     recap: 'panelRecap',
     joueurs: 'panelJoueurs',
-    noms: 'panelNoms'
+    noms: 'panelNoms',
+    timer: 'panelTimer'
   };
   const idsTabs = {
     saisie: 'tabSaisie',
     recap: 'tabRecap',
     joueurs: 'tabJoueurs',
-    noms: 'tabNoms'
+    noms: 'tabNoms',
+    timer: 'tabTimer'
   };
 
   if (window.innerWidth <= 600) {
@@ -494,7 +544,248 @@ function showPanel(which) {
 
     document.getElementById(idsPanels[which]).classList.add('active-panel');
     document.getElementById(idsTabs[which]).classList.add('active');
+    mettreAJourRappelTimerMobile();
   }
+}
+
+function formatTimer(ms) {
+  const safe = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function mettreAJourAffichageTimer() {
+  const display = document.getElementById('timerDisplay');
+  const status = document.getElementById('timerStatus');
+  const pauseBtn = document.getElementById('timerPauseBtn');
+  const restant = timerRunning ? Math.max(0, timerTargetTs - Date.now()) : timerRemainingMs;
+  if (display) display.textContent = formatTimer(restant);
+
+  if (pauseBtn) {
+    pauseBtn.textContent = timerRunning ? 'Pause' : 'Reprendre';
+    pauseBtn.disabled = timerHasFinished || restant <= 0;
+  }
+
+  if (status) {
+    if (timerHasFinished) {
+      status.textContent = 'Temps écoulé. Sonnerie clochette déclenchée.';
+    } else if (timerRunning) {
+      status.textContent = 'Minuteur en cours...';
+    } else if (restant > 0) {
+      status.textContent = 'Minuteur en pause.';
+    } else {
+      status.textContent = 'Choisis une durée pour lancer le minuteur.';
+    }
+  }
+
+  mettreAJourRappelTimerMobile();
+}
+
+function sauvegarderEtatTimer() {
+  try {
+    const state = {
+      running: timerRunning,
+      remainingMs: timerRunning ? Math.max(0, timerTargetTs - Date.now()) : timerRemainingMs,
+      targetTs: timerRunning ? timerTargetTs : 0,
+      finished: timerHasFinished
+    };
+    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {}
+}
+
+function chargerEtatTimer() {
+  try {
+    const raw = localStorage.getItem(TIMER_STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (!saved || typeof saved !== 'object') return;
+
+    timerHasFinished = Boolean(saved.finished);
+    timerRunning = Boolean(saved.running);
+
+    if (timerRunning && saved.targetTs) {
+      timerTargetTs = Number(saved.targetTs);
+      timerRemainingMs = Math.max(0, timerTargetTs - Date.now());
+      if (timerRemainingMs <= 0) {
+        timerRunning = false;
+        timerHasFinished = true;
+        timerRemainingMs = 0;
+      }
+    } else {
+      timerRunning = false;
+      timerRemainingMs = Math.max(0, Number(saved.remainingMs || 0));
+    }
+  } catch (e) {}
+}
+
+function jouerSonnerieClochette() {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return;
+
+  const ctx = new Ctx();
+  const now = ctx.currentTime;
+
+  // Cloche grave + partiels inharmoniques, avec plusieurs coups espacés.
+  const jouerCoupDeCloche = (startAt) => {
+    const partiels = [
+      { freq: 392, amp: 0.24, type: 'triangle', decay: 5.8 },
+      { freq: 522, amp: 0.12, type: 'sine', decay: 4.4 },
+      { freq: 613, amp: 0.08, type: 'sine', decay: 3.8 },
+      { freq: 785, amp: 0.05, type: 'sine', decay: 3.2 }
+    ];
+
+    partiels.forEach(p => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = p.type;
+      osc.frequency.setValueAtTime(p.freq, startAt);
+      // Petite chute de frequence pour simuler la cloche physique.
+      osc.frequency.exponentialRampToValueAtTime(p.freq * 0.985, startAt + 0.35);
+
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.exponentialRampToValueAtTime(p.amp, startAt + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startAt + p.decay);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(startAt);
+      osc.stop(startAt + p.decay + 0.15);
+    });
+  };
+
+  const coups = [0, 1.8, 3.6];
+  coups.forEach(offset => {
+    jouerCoupDeCloche(now + offset);
+  });
+
+  const dureeTotaleMs = 9500;
+  window.setTimeout(() => {
+    ctx.close().catch(() => {});
+  }, dureeTotaleMs);
+}
+
+function finirTimer() {
+  timerRunning = false;
+  timerRemainingMs = 0;
+  timerHasFinished = true;
+  if (timerIntervalId) {
+    window.clearInterval(timerIntervalId);
+    timerIntervalId = null;
+  }
+  jouerSonnerieClochette();
+  sauvegarderEtatTimer();
+  mettreAJourAffichageTimer();
+}
+
+function tickTimer() {
+  if (!timerRunning) return;
+  const restant = timerTargetTs - Date.now();
+  if (restant <= 0) {
+    finirTimer();
+    return;
+  }
+  timerRemainingMs = restant;
+  mettreAJourAffichageTimer();
+}
+
+function demarrerTimer(ms) {
+  const duree = Math.max(0, Number(ms || 0));
+  if (duree <= 0) return;
+
+  timerHasFinished = false;
+  timerRunning = true;
+  timerRemainingMs = duree;
+  timerTargetTs = Date.now() + duree;
+
+  if (timerIntervalId) {
+    window.clearInterval(timerIntervalId);
+  }
+  timerIntervalId = window.setInterval(tickTimer, 250);
+  sauvegarderEtatTimer();
+  mettreAJourAffichageTimer();
+}
+
+function lancerPresetTimer(minutes) {
+  demarrerTimer(Number(minutes) * 60 * 1000);
+}
+
+function lancerTimerLibre() {
+  const input = document.getElementById('timerCustomMinutes');
+  if (!input) return;
+
+  const brut = String(input.value || '').trim().replace(',', '.');
+  const minutes = Number(brut);
+  if (!Number.isFinite(minutes) || minutes < 0.1 || minutes > 600) {
+    alert('Choisis une durée libre entre 0,1 et 600 minutes.');
+    input.focus();
+    return;
+  }
+  demarrerTimer(Math.round(minutes * 60 * 1000));
+}
+
+function basculerPauseTimer() {
+  if (timerHasFinished) return;
+
+  if (timerRunning) {
+    timerRemainingMs = Math.max(0, timerTargetTs - Date.now());
+    timerRunning = false;
+    if (timerIntervalId) {
+      window.clearInterval(timerIntervalId);
+      timerIntervalId = null;
+    }
+    sauvegarderEtatTimer();
+    mettreAJourAffichageTimer();
+    return;
+  }
+
+  if (timerRemainingMs > 0) {
+    demarrerTimer(timerRemainingMs);
+  }
+}
+
+function reinitialiserTimer() {
+  timerRunning = false;
+  timerHasFinished = false;
+  timerRemainingMs = 0;
+  timerTargetTs = 0;
+  if (timerIntervalId) {
+    window.clearInterval(timerIntervalId);
+    timerIntervalId = null;
+  }
+  sauvegarderEtatTimer();
+  mettreAJourAffichageTimer();
+}
+
+function getOngletActifMobile() {
+  const tabActif = document.querySelector('.tabs .tab-btn.active');
+  return tabActif ? tabActif.id : '';
+}
+
+function mettreAJourRappelTimerMobile() {
+  const rappel = document.getElementById('timerReminderMobile');
+  if (!rappel) return;
+
+  const hints = document.querySelectorAll('#tabSaisie .tab-timer-hint, #tabRecap .tab-timer-hint, #tabJoueurs .tab-timer-hint, #tabNoms .tab-timer-hint');
+  const isMobile = window.innerWidth <= 600;
+  const actif = getOngletActifMobile();
+  const restantMs = timerRunning ? Math.max(0, timerTargetTs - Date.now()) : timerRemainingMs;
+  const showHint = isMobile && !timerHasFinished && restantMs > 0;
+
+  hints.forEach(hint => {
+    hint.textContent = showHint ? formatTimer(restantMs) : '';
+  });
+
+  if (!isMobile || timerHasFinished || restantMs <= 0 || actif === 'tabTimer') {
+    rappel.classList.remove('visible');
+    rappel.textContent = '';
+    return;
+  }
+
+  rappel.textContent = `Temps restant: ${formatTimer(restantMs)}`;
+  rappel.classList.add('visible');
 }
 
 function setContrat(value, buttonEl) {
@@ -559,17 +850,20 @@ window.addEventListener('resize', () => {
     const recap = document.getElementById('panelRecap');
     const joueurs = document.getElementById('panelJoueurs');
     const noms = document.getElementById('panelNoms');
+    const timer = document.getElementById('panelTimer');
     if (!card.classList.contains('active-panel') &&
         !recap.classList.contains('active-panel') &&
         !joueurs.classList.contains('active-panel') &&
-        !noms.classList.contains('active-panel')) {
+        !noms.classList.contains('active-panel') &&
+        !timer.classList.contains('active-panel')) {
       showPanel('saisie');
     }
   } else {
-    ['panelSaisie','panelRecap','panelJoueurs','panelNoms'].forEach(id => {
+    ['panelSaisie','panelRecap','panelJoueurs','panelNoms','panelTimer'].forEach(id => {
       document.getElementById(id).classList.remove('active-panel');
     });
   }
+  mettreAJourRappelTimerMobile();
 });
 
 function chargerListeNoms() {
@@ -1439,6 +1733,13 @@ document.getElementById('nouveauNom').addEventListener('keydown', function (even
   }
 });
 
+document.getElementById('timerCustomMinutes').addEventListener('keydown', function (event) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    lancerTimerLibre();
+  }
+});
+
 chargerListeNoms();
 chargerNomsJoueurs();
 if (!nomsJoueurs.some(n => n)) {
@@ -1455,7 +1756,15 @@ afficherTableauScores();
 remplirSelectEcart();
 initCompactFields();
 appliquerChangementNbJoueurs();
+chargerEtatTimer();
 
+if (timerRunning) {
+  if (timerRemainingMs > 0) {
+    demarrerTimer(timerRemainingMs);
+  }
+} else {
+  mettreAJourAffichageTimer();
+}
 if (window.innerWidth <= 600) {
   showPanel('saisie');
 }

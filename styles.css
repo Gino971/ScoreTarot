@@ -81,6 +81,15 @@ select {
   max-width: 100%;
 }
 
+.timer-card {
+  background: rgba(15, 15, 25, 0.95);
+  padding: 16px 20px 20px;
+  width: 360px;
+  max-width: 100%;
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+}
+
 h1 {
   margin: 0 0 8px;
   font-size: 20px;
@@ -278,6 +287,7 @@ input:focus, select:focus {
 }
 
 .tab-btn {
+  position: relative;
   padding: 6px;
   background: linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);
   border: none;
@@ -292,6 +302,76 @@ input:focus, select:focus {
   width: 72px;
   border-radius: 10px;
   box-sizing: border-box;
+}
+
+.tab-timer-hint {
+  position: absolute;
+  right: 4px;
+  top: 3px;
+  font-size: 8px;
+  line-height: 1;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.timer-reminder-mobile {
+  display: none;
+}
+
+.timer-display {
+  margin: 8px 0 12px;
+  padding: 12px;
+  text-align: center;
+  border-radius: 14px;
+  font-size: 42px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #fdf6dd;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.24), rgba(239, 68, 68, 0.24));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.timer-presets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.timer-preset-btn {
+  min-height: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.22);
+}
+
+.timer-custom-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.timer-custom-btn {
+  min-height: 50px;
+  height: 50px;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.timer-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.timer-actions button {
+  flex: 1 1 0%;
 }
 
 .tab-btn.active {
@@ -777,16 +857,32 @@ details.nb-joueurs {
     flex: 1 1 auto;
     min-height: 0;
   }
-  .card, .scores-card, .players-card, .names-card {
+  .card, .scores-card, .players-card, .names-card, .timer-card {
     width: 100%;
   }
-  .card, .scores-card, .players-card, .names-card {
+  .card, .scores-card, .players-card, .names-card, .timer-card {
     display: none;
   }
   .card.active-panel,
   .scores-card.active-panel,
   .players-card.active-panel,
-  .names-card.active-panel {
+  .names-card.active-panel,
+  .timer-card.active-panel {
+    display: block;
+  }
+  .timer-reminder-mobile {
+    display: none;
+    width: 100%;
+    margin: 6px 0 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fdf6dd;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.34), rgba(239, 68, 68, 0.26));
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .timer-reminder-mobile.visible {
     display: block;
   }
   .names-card.active-panel {
@@ -817,8 +913,8 @@ details.nb-joueurs {
 
 @media (min-width: 601px) {
   .tabs { display: none; }
-  .card, .scores-card, .players-card, .names-card { display: block; }
-  .scores-card, .names-card { width: 360px; }
+  .card, .scores-card, .players-card, .names-card, .timer-card { display: block; }
+  .scores-card, .names-card, .timer-card { width: 360px; }
 }
 
 /* Agrandir les contrôles pour très petits écrans (ex: iPhone 12 mini) */
@@ -831,9 +927,10 @@ details.nb-joueurs {
   .donneur-next-arrow { font-size: 15px; }
   .inline-small { flex-basis: 92px; max-width: 92px; min-width: 78px; }
   .donneur-field { flex-basis: auto; max-width: none; gap: 5px; }
-  .card, .players-card, .scores-card, .names-card { width: 100%; padding: 18px; }
+  .card, .players-card, .scores-card, .names-card, .timer-card { width: 100%; padding: 18px; }
   .contract-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
   .buttons { flex-direction: column; }
+  .timer-display { font-size: 36px; }
 }
 
 /* Écran de sortie utilisé par quitterApp() */
