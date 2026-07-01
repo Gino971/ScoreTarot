@@ -273,6 +273,19 @@ input:focus, select:focus {
 }
 
 /* SVG icons for tabs */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+}
+
+.tabs .tab-btn,
+.tabs .tab-btn.timer-running {
+  width: 100%;
+  min-width: 0;
+}
+
 .tab-btn svg {
     width: 24px;
     height: 24px;

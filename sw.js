@@ -1,4 +1,4 @@
-const CACHE_NAME = 'scores-tarot-gino-v13';
+const CACHE_NAME = 'scores-tarot-gino-v14';
 const APP_ASSETS = [
   './',
   './index.html',
