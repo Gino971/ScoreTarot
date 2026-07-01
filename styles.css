@@ -822,10 +822,18 @@ details.nb-joueurs {
     min-height: 100dvh;
   }
   .tabs {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
     width: 100%;
+  }
+  .tabs .tab-btn {
+    width: 100%;
+    min-width: 0;
+  }
+  .tabs .tab-btn.timer-running {
+    width: 100%;
+    min-width: 0;
   }
   .panels {
     display: flex;
